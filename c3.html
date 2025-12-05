@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GourmetVerse 3D - Indian Cuisine</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff9900',
+                        secondary: '#cc7700',
+                        dark: '#0a0503',
+                        card: '#1a1a1a',
+                        saffron: '#FF6B00',
+                        turmeric: '#FFD93D',
+                        coriander: '#6BCB77',
+                        chili: '#FF4444',
+                        cream: '#FFF5E4',
+                    },
+                    animation: {
+                        'bounce-in': 'bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'slide-in-right': 'slideInRight 0.3s ease-out',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'shake': 'shake 0.5s ease-in-out',
+                        'pop': 'pop 0.3s ease-out',
+                        'wiggle': 'wiggle 0.3s ease-in-out',
+                        'shimmer': 'shimmer 2s linear infinite',
+                        'gradient-flow': 'gradientFlow 3s ease infinite',
+                    },
+                    keyframes: {
+                        bounceIn: {
+                            '0%': { transform: 'scale(0)', opacity: '0' },
+                            '50%': { transform: 'scale(1.1)' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(255, 153, 0, 0.3)' },
+                            '50%': { boxShadow: '0 0 40px rgba(255, 153, 0, 0.6)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-5px)' },
+                            '75%': { transform: 'translateX(5px)' },
+                        },
+                        pop: {
+                            '0%': { transform: 'scale(0.8)' },
+                            '50%': { transform: 'scale(1.1)' },
+                            '100%': { transform: 'scale(1)' },
+                        },
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' },
+                        },
+                        gradientFlow: {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Three.js & Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Shared Cart Module -->
+    <script src="shared-cart.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #0a0503; 
+            color: white; 
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            user-select: none;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,153,0,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(180deg, #ff9900, #cc7700); 
+            border-radius: 10px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #ffaa22, #dd8811); }
+        
+        /* 3D Canvas */
+        #canvas-container { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 1;
+            background: radial-gradient(ellipse at 30% 20%, #4a1c0a 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 80%, #1a3a1a 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 50%, #2d1810 0%, #0a0503 100%);
+        }
+        
+        #ui-layer { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 10; 
+            pointer-events: none; 
+        }
+        
+        .interactive { pointer-events: auto !important; }
+        
+        /* Drag Ghost */
+        #drag-ghost { 
+            position: fixed; 
+            pointer-events: none; 
+            width: 80px; 
+            height: 80px; 
+            border-radius: 50%; 
+            background-size: cover; 
+            background-position: center; 
+            z-index: 1000; 
+            opacity: 0.95; 
+            transform: translate(-50%, -50%) scale(1.2) rotate(5deg); 
+            display: none; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 40px rgba(255, 153, 0, 0.5); 
+            border: 4px solid #ff9900; 
+            background-color: #1a0a05;
+            animation: wiggle 0.3s ease-in-out infinite;
+        }
+        
+        /* Food Orbit */
+        .food-orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        
+        .food-item {
+            position: absolute;
+            cursor: grab;
+            pointer-events: auto;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .food-item:hover { transform: scale(1.18) !important; z-index: 100; }
+        .food-item:active { cursor: grabbing; transform: scale(1.22) !important; }
+        
+        .food-item-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid rgba(255, 153, 0, 0.7);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 153, 0, 0.25), inset 0 -3px 10px rgba(0,0,0,0.3);
+            background: linear-gradient(145deg, #2a1a10, #1a0a05);
+            position: relative;
+        }
+        
+        .food-item-inner::before {
+            content: '';
+            position: absolute;
+            top: 5%;
+            left: 10%;
+            width: 30%;
+            height: 20%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+            border-radius: 50%;
+            z-index: 2;
+        }
+        
+        .food-item-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        
+        .food-item:hover .food-item-inner img { transform: scale(1.1); }
+        
+        /* Plate Zone */
+        .plate-zone {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 4px dashed rgba(255, 153, 0, 0.4);
+            background: radial-gradient(circle, rgba(255, 153, 0, 0.08) 0%, transparent 70%);
+            pointer-events: auto;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .plate-zone.drag-over {
+            border-color: #ff9900;
+            border-style: solid;
+            background: radial-gradient(circle, rgba(255, 153, 0, 0.2) 0%, rgba(255,153,0,0.05) 50%, transparent 70%);
+            box-shadow: 0 0 80px rgba(255, 153, 0, 0.4), inset 0 0 60px rgba(255,153,0,0.1);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        
+        /* Loader */
+        #loader { 
+            position: fixed; 
+            inset: 0; 
+            background: linear-gradient(135deg, #1a0a05 0%, #0a0503 50%, #0d1a0d 100%); 
+            z-index: 100; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            transition: opacity 0.8s; 
+        }
+        
+        .spinner { 
+            width: 70px; 
+            height: 70px; 
+            border: 5px solid #2a1510; 
+            border-top-color: #ff9900;
+            border-right-color: #ffcc00;
+            border-radius: 50%; 
+            animation: spin 0.8s linear infinite; 
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Super Text Animation */
+        .super-text { 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%) scale(0); 
+            z-index: 65; 
+            color: #ff9900; 
+            font-size: 3.5rem; 
+            font-weight: 800;
+            font-family: 'Playfair Display', serif;
+            text-shadow: 4px 4px 0px #2a1510, 0 0 40px rgba(255, 153, 0, 0.6), 0 0 80px rgba(255,153,0,0.3);
+            pointer-events: none; 
+            white-space: nowrap;
+            letter-spacing: 2px;
+        }
+        
+        /* Qty Badge */
+        .qty-badge {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.5);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .qty-badge.visible { transform: translateX(-50%) scale(1); }
+        
+        /* Price Badge */
+        .price-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(135deg, #ff9900, #cc7700);
+            color: #000;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(255,153,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        /* Food Label */
+        .food-label {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(26,10,5,0.95));
+            color: #ff9900;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,153,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        
+        .food-item:hover .food-label { 
+            opacity: 1; 
+            transform: translateX(-50%) translateY(-3px);
+        }
+        
+        /* Plate Summary Item - Enhanced */
+        .plate-summary-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: grab;
+        }
+        .plate-summary-item:hover {
+            transform: translateY(-2px);
+        }
+        .plate-summary-item:active {
+            cursor: grabbing;
+        }
+        .plate-summary-item.dragging {
+            opacity: 0.4;
+            transform: scale(0.95) rotate(2deg);
+            box-shadow: 0 0 0 3px #ef4444 !important;
+        }
+        
+        /* Trash bin enhanced states */
+        #trash-bin {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #trash-bin.drag-active {
+            transform: scale(1.3) rotate(-5deg);
+            background: linear-gradient(135deg, rgba(239,68,68,0.7), rgba(220,38,38,0.8)) !important;
+            border-color: #fff !important;
+            box-shadow: 0 0 50px rgba(239,68,68,0.7), 0 0 80px rgba(239,68,68,0.4), inset 0 0 20px rgba(255,255,255,0.2) !important;
+        }
+        #trash-bin.drag-active::before {
+            content: 'DROP HERE';
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ef4444;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+            animation: bounce 0.5s ease infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+        #trash-bin.drag-active #trash-hint {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        
+        /* Plate summary gradient backgrounds */
+        .summary-gradient-1 { background: linear-gradient(135deg, #fff7ed, #ffedd5); }
+        .summary-gradient-2 { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+        .summary-gradient-3 { background: linear-gradient(135deg, #dcfce7, #bbf7d0); }
+        .summary-gradient-4 { background: linear-gradient(135deg, #fee2e2, #fecaca); }
+        .summary-gradient-5 { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); }
+        
+        /* Shimmer effect */
+        .shimmer {
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+        }
+        
+        /* Drop animation on plate */
+        @keyframes dropBounce {
+            0% { transform: translateY(-50px) scale(0); opacity: 0; }
+            50% { transform: translateY(10px) scale(1.2); opacity: 1; }
+            70% { transform: translateY(-5px) scale(0.9); }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        .drop-animation {
+            animation: dropBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="drag-ghost"></div>
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="flex flex-col items-center gap-5">
+            <div class="spinner"></div>
+            <div class="text-center">
+                <p class="text-amber-100 text-2xl font-bold tracking-[0.25em]">GOURMET<span class="text-orange-500">VERSE</span></p>
+                <p class="text-amber-900/60 text-xs tracking-[0.4em] mt-2">LOADING FLAVORS...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Super Text -->
+    <div id="eating-overlay">
+        <div id="super-text" class="super-text">SWADISHT!</div>
+    </div>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Layer -->
+    <div id="ui-layer" class="flex flex-col h-full">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center p-3 md:p-4 lg:p-5 pointer-events-auto z-50">
+            <div class="flex items-center gap-2 md:gap-4">
+                <!-- Home Button -->
+                <a href="index.html" class="flex items-center gap-1 px-3 py-2 md:px-4 md:py-2.5 bg-black/60 border border-white/20 rounded-full text-white text-xs font-bold hover:bg-white/10 transition-all hover:scale-105 active:scale-95">
+                    <span>←</span>
+                    <span class="hidden sm:inline">HOME</span>
+                </a>
+                <div class="flex items-center gap-2 md:gap-3 cursor-pointer group">
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-primary via-yellow-500 to-secondary rounded-full flex items-center justify-center font-bold text-black text-sm md:text-base shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 border-2 border-yellow-300/30">GV</div>
+                    <div class="hidden sm:block">
+                        <h1 class="text-base md:text-lg font-bold text-white tracking-wider">GOURMET<span class="text-primary">VERSE</span></h1>
+                        <span class="text-[9px] text-primary/80 tracking-[0.2em] font-medium">3D THALI BUILDER</span>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="index.html" class="flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 bg-gradient-to-r from-primary via-yellow-500 to-secondary rounded-full text-black font-bold text-sm shadow-lg shadow-primary/40 hover:shadow-primary/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 active:scale-95 border border-yellow-300/30">
+                <span class="text-lg">🛒</span>
+                <span class="hidden sm:inline">View Cart</span>
+                <span id="cart-count" class="bg-black text-primary px-2.5 py-0.5 rounded-full text-xs font-bold shadow-inner">0</span>
+            </a>
+        </header>
+
+        <!-- Category Filter - Right Side -->
+        <div id="category-filter" class="fixed right-3 md:right-5 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-40 pointer-events-auto">
+            <!-- Categories will be rendered here -->
+        </div>
+
+        <!-- Food Orbit Container -->
+        <div class="food-orbit" id="food-orbit"></div>
+
+        <!-- Plate Drop Zone -->
+        <div class="plate-zone w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px]" id="plate-zone">
+            <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 text-primary/60 text-[10px] md:text-xs tracking-[0.2em] whitespace-nowrap font-medium bg-black/50 px-4 py-1.5 rounded-full border border-primary/20">✨ DROP TO ADD ✨</div>
+        </div>
+
+        <!-- Plate Summary Panel - Enhanced Colors -->
+        <div id="plate-summary" class="fixed left-3 md:left-5 bottom-20 md:bottom-24 w-[calc(100%-24px)] sm:w-[360px] md:w-[400px] max-h-[55vh] md:max-h-[65vh] bg-white rounded-3xl shadow-2xl overflow-hidden pointer-events-auto z-40 transition-all duration-300 transform origin-bottom-left" style="box-shadow: 0 25px 60px rgba(0,0,0,0.4), 0 10px 30px rgba(255,153,0,0.1);">
+            
+            <!-- Header - Vibrant Gradient -->
+            <div class="relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500"></div>
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"30\" height=\"30\" viewBox=\"0 0 30 30\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M15 0L30 15L15 30L0 15z\" fill=\"rgba(255,255,255,0.1)\"/%3E%3C/svg%3E')]"></div>
+                <div class="relative px-5 py-4 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🍽️</span>
+                        <h3 class="text-white font-bold text-lg tracking-wide drop-shadow-md">Your Thali</h3>
+                    </div>
+                    <span id="summary-item-count" class="bg-white/20 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg border border-white/30">0 items</span>
+                </div>
+            </div>
+            
+            <!-- Items List -->
+            <div id="plate-summary-items" class="max-h-[32vh] md:max-h-[38vh] overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-orange-50 via-amber-50 to-white">
+                <div class="text-center py-10">
+                    <div class="text-6xl mb-4 animate-bounce">🍽️</div>
+                    <p class="font-bold text-gray-600 text-lg">Your plate awaits!</p>
+                    <p class="text-sm mt-2 text-gray-400">Drag delicious items to start</p>
+                    <div class="mt-4 flex justify-center gap-2">
+                        <span class="px-3 py-1 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-600 rounded-full text-xs font-medium">🥘 Curries</span>
+                        <span class="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-600 rounded-full text-xs font-medium">🥗 Healthy</span>
+                        <span class="px-3 py-1 bg-gradient-to-r from-pink-100 to-rose-100 text-pink-600 rounded-full text-xs font-medium">🍮 Sweets</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Totals - Colorful Cards -->
+            <div id="plate-summary-footer" class="hidden border-t-2 border-orange-100 bg-gradient-to-r from-orange-50 to-amber-50 p-4">
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="bg-gradient-to-br from-emerald-400 to-green-500 rounded-2xl p-3 shadow-lg shadow-emerald-200 transform hover:scale-105 transition-transform">
+                        <div id="footer-total-price" class="text-white font-bold text-sm md:text-base drop-shadow">₹0</div>
+                        <div class="text-[8px] text-emerald-100 uppercase tracking-wider font-semibold">Total</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl p-3 shadow-lg shadow-orange-200 transform hover:scale-105 transition-transform">
+                        <div id="footer-total-cal" class="text-white font-bold text-sm md:text-base drop-shadow">0</div>
+                        <div class="text-[8px] text-orange-100 uppercase tracking-wider font-semibold">Calories</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-3 shadow-lg shadow-blue-200 transform hover:scale-105 transition-transform">
+                        <div id="footer-total-protein" class="text-white font-bold text-sm md:text-base drop-shadow">0g</div>
+                        <div class="text-[8px] text-blue-100 uppercase tracking-wider font-semibold">Protein</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl p-3 shadow-lg shadow-purple-200 transform hover:scale-105 transition-transform">
+                        <div id="footer-total-carbs" class="text-white font-bold text-sm md:text-base drop-shadow">0g</div>
+                        <div class="text-[8px] text-purple-100 uppercase tracking-wider font-semibold">Carbs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Control Panel -->
+        <div class="fixed bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-3 px-4 py-2.5 md:px-6 md:py-3 bg-black/95 backdrop-blur-xl rounded-full border border-primary/30 pointer-events-auto z-40 shadow-2xl shadow-primary/10">
+            <button onclick="app.clearPlate()" class="px-4 py-2 md:px-5 md:py-2.5 bg-gradient-to-r from-red-500/20 to-red-600/20 hover:from-red-500/40 hover:to-red-600/40 text-red-400 hover:text-red-300 rounded-full text-xs md:text-sm font-semibold transition-all active:scale-95 border border-red-500/30">
+                🗑️ Clear
+            </button>
+            
+            <div class="flex items-center gap-4 md:gap-5 px-4 md:px-5 border-l border-r border-primary/30">
+                <div class="text-center">
+                    <div id="total-items" class="text-primary font-bold text-lg md:text-xl">0</div>
+                    <div class="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Items</div>
+                </div>
+                <div class="text-center">
+                    <div id="total-price" class="text-primary font-bold text-lg md:text-xl">₹0</div>
+                    <div class="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Total</div>
+                </div>
+            </div>
+            
+            <button onclick="app.addToCart()" class="px-5 py-2 md:px-7 md:py-2.5 bg-gradient-to-r from-primary via-yellow-500 to-secondary hover:from-yellow-400 hover:via-orange-400 hover:to-orange-500 text-black rounded-full text-xs md:text-sm font-bold shadow-lg shadow-primary/30 transition-all active:scale-95 hover:-translate-y-0.5 border border-yellow-300/30">
+                🛒 Add to Order
+            </button>
+        </div>
+
+        <!-- Trash Bin - Enhanced -->
+        <div id="trash-bin" class="fixed bottom-20 md:bottom-24 right-3 md:right-5 w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-red-500/20 via-red-600/25 to-rose-600/30 border-3 border-red-400/50 rounded-2xl flex items-center justify-center text-3xl md:text-4xl transition-all duration-300 pointer-events-auto cursor-pointer z-40 hover:scale-115 hover:bg-gradient-to-br hover:from-red-500/40 hover:to-rose-600/50 hover:border-red-400 hover:shadow-[0_0_40px_rgba(239,68,68,0.5)] backdrop-blur-md group" style="box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);">
+            <span class="group-hover:animate-wiggle">🗑️</span>
+            <div class="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-red-500 to-rose-600 rounded-full flex items-center justify-center text-[10px] text-white font-bold opacity-0 transition-all shadow-lg" id="trash-hint">!</div>
+            <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] text-red-400/70 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity font-medium">Drag here to remove</div>
+        </div>
+
+        <!-- Cart is managed in index.html - items added here sync automatically -->
+
+    </div>
+
+    <script>
+        // ========== MENU DATA ==========
+        const menuItems = [
+            // TIFFINS
+            { id: 1, category: 'tiffins', type: 'veg', name: "Masala Dosa", img: 'https://images.unsplash.com/photo-1668236543090-82eb5eaf59e5?auto=format&fit=crop&w=400&q=80', price: 80, cal: 250, protein: 6, carbs: 40, fat: 8, portion: "1 pc", shape: 'dosa', color: 0xD4A574 },
+            { id: 2, category: 'tiffins', type: 'veg', name: "Idli Sambar", img: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=400&q=80', price: 60, cal: 180, protein: 5, carbs: 35, fat: 2, portion: "3 pcs", shape: 'idli', color: 0xF5F5DC },
+            { id: 3, category: 'tiffins', type: 'veg', name: "Medu Vada", img: 'https://images.unsplash.com/photo-1630383249896-424e482df921?auto=format&fit=crop&w=400&q=80', price: 50, cal: 200, protein: 8, carbs: 25, fat: 10, portion: "2 pcs", shape: 'vada', color: 0xC4A35A },
+            { id: 4, category: 'tiffins', type: 'veg', name: "Upma", img: 'https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&w=400&q=80', price: 50, cal: 220, protein: 5, carbs: 38, fat: 6, portion: "200g", shape: 'rice', color: 0xF5DEB3 },
+            { id: 5, category: 'tiffins', type: 'veg', name: "Poha", img: 'https://images.unsplash.com/photo-1645177628172-a94c1f96e6db?auto=format&fit=crop&w=400&q=80', price: 45, cal: 180, protein: 4, carbs: 32, fat: 5, portion: "200g", shape: 'rice', color: 0xFFE4B5 },
+            { id: 6, category: 'tiffins', type: 'non-veg', name: "Egg Dosa", img: 'https://images.unsplash.com/photo-1668236543090-82eb5eaf59e5?auto=format&fit=crop&w=400&q=80', price: 100, cal: 320, protein: 14, carbs: 40, fat: 12, portion: "1 pc", shape: 'dosa', color: 0xDEB887 },
+            
+            // LUNCH
+            { id: 7, category: 'lunch', type: 'veg', name: "Dal Makhani", img: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=400&q=80', price: 220, cal: 380, protein: 15, carbs: 45, fat: 16, portion: "200g", shape: 'curry', color: 0x8B4513 },
+            { id: 8, category: 'lunch', type: 'veg', name: "Paneer Butter Masala", img: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=400&q=80', price: 280, cal: 450, protein: 22, carbs: 20, fat: 30, portion: "200g", shape: 'curry', color: 0xE25822 },
+            { id: 9, category: 'lunch', type: 'non-veg', name: "Butter Chicken", img: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=400&q=80', price: 320, cal: 550, protein: 32, carbs: 18, fat: 38, portion: "250g", shape: 'curry', color: 0xFF6347 },
+            { id: 10, category: 'lunch', type: 'non-veg', name: "Hyderabadi Biryani", img: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=400&q=80', price: 350, cal: 650, protein: 28, carbs: 75, fat: 25, portion: "350g", shape: 'biryani', color: 0xFFD700 },
+            { id: 11, category: 'lunch', type: 'veg', name: "Veg Biryani", img: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=400&q=80', price: 250, cal: 480, protein: 12, carbs: 70, fat: 15, portion: "300g", shape: 'biryani', color: 0xFFA500 },
+            { id: 12, category: 'lunch', type: 'veg', name: "Palak Paneer", img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80', price: 260, cal: 400, protein: 18, carbs: 15, fat: 28, portion: "200g", shape: 'curry', color: 0x228B22 },
+            { id: 13, category: 'lunch', type: 'non-veg', name: "Chicken Tikka", img: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=400&q=80', price: 290, cal: 380, protein: 35, carbs: 8, fat: 22, portion: "200g", shape: 'tikka', color: 0xCD5C5C },
+            { id: 14, category: 'lunch', type: 'non-veg', name: "Fish Curry", img: 'https://images.unsplash.com/photo-1626508035297-4c5c7c94f6c5?auto=format&fit=crop&w=400&q=80', price: 340, cal: 420, protein: 38, carbs: 12, fat: 24, portion: "250g", shape: 'curry', color: 0xF4A460 },
+            
+            // SNACKS
+            { id: 15, category: 'snacks', type: 'veg', name: "Samosa", img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80', price: 40, cal: 250, protein: 4, carbs: 28, fat: 14, portion: "2 pcs", shape: 'samosa', color: 0xDAA520 },
+            { id: 16, category: 'snacks', type: 'veg', name: "Pakora", img: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=400&q=80', price: 60, cal: 200, protein: 5, carbs: 22, fat: 10, portion: "6 pcs", shape: 'pakora', color: 0xB8860B },
+            { id: 17, category: 'snacks', type: 'veg', name: "Pani Puri", img: 'https://images.unsplash.com/photo-1626132647523-66c5b00c9f77?auto=format&fit=crop&w=400&q=80', price: 50, cal: 150, protein: 3, carbs: 25, fat: 5, portion: "6 pcs", shape: 'puri', color: 0xF5DEB3 },
+            { id: 18, category: 'snacks', type: 'veg', name: "Bhel Puri", img: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=400&q=80', price: 60, cal: 180, protein: 4, carbs: 30, fat: 6, portion: "150g", shape: 'rice', color: 0xFFE4C4 },
+            { id: 19, category: 'snacks', type: 'veg', name: "Aloo Tikki", img: 'https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&w=400&q=80', price: 50, cal: 220, protein: 4, carbs: 32, fat: 10, portion: "2 pcs", shape: 'tikki', color: 0xD2691E },
+            { id: 20, category: 'snacks', type: 'non-veg', name: "Chicken Momos", img: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=400&q=80', price: 100, cal: 280, protein: 18, carbs: 25, fat: 12, portion: "6 pcs", shape: 'momo', color: 0xFFFAF0 },
+            
+            // DINNER
+            { id: 21, category: 'dinner', type: 'veg', name: "Butter Naan", img: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=400&q=80', price: 60, cal: 280, protein: 7, carbs: 42, fat: 9, portion: "1 pc", shape: 'naan', color: 0xF5DEB3 },
+            { id: 22, category: 'dinner', type: 'veg', name: "Garlic Naan", img: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&w=400&q=80', price: 70, cal: 300, protein: 8, carbs: 45, fat: 10, portion: "1 pc", shape: 'naan', color: 0xEEDCB3 },
+            { id: 23, category: 'dinner', type: 'veg', name: "Tandoori Roti", img: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=400&q=80', price: 40, cal: 180, protein: 5, carbs: 35, fat: 2, portion: "1 pc", shape: 'roti', color: 0xDEB887 },
+            { id: 24, category: 'dinner', type: 'veg', name: "Jeera Rice", img: 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?auto=format&fit=crop&w=400&q=80', price: 120, cal: 250, protein: 5, carbs: 50, fat: 4, portion: "200g", shape: 'rice', color: 0xFFFFF0 },
+            { id: 25, category: 'dinner', type: 'veg', name: "Raita", img: 'https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&w=400&q=80', price: 60, cal: 80, protein: 4, carbs: 8, fat: 3, portion: "100g", shape: 'raita', color: 0xFFFAFA },
+            { id: 26, category: 'dinner', type: 'veg', name: "Pickle & Chutney", img: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=400&q=80', price: 40, cal: 30, protein: 0.5, carbs: 6, fat: 1, portion: "50g", shape: 'chutney', color: 0x8B0000 },
+            { id: 27, category: 'dinner', type: 'non-veg', name: "Mutton Curry", img: 'https://images.unsplash.com/photo-1545247181-516773cae754?auto=format&fit=crop&w=400&q=80', price: 420, cal: 580, protein: 42, carbs: 15, fat: 40, portion: "250g", shape: 'curry', color: 0x8B4513 },
+            { id: 28, category: 'dinner', type: 'non-veg', name: "Tandoori Chicken", img: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=400&q=80', price: 380, cal: 450, protein: 48, carbs: 5, fat: 25, portion: "Half", shape: 'tikka', color: 0xFF4500 },
+            
+            // SWEETS
+            { id: 29, category: 'sweets', type: 'veg', name: "Gulab Jamun", img: 'https://images.unsplash.com/photo-1666190094762-2a25f3ea5d60?auto=format&fit=crop&w=400&q=80', price: 80, cal: 350, protein: 5, carbs: 55, fat: 12, portion: "2 pcs", shape: 'gulabjamun', color: 0x8B4513 },
+            { id: 30, category: 'sweets', type: 'veg', name: "Rasmalai", img: 'https://images.unsplash.com/photo-1571006084955-f15ae7b90f38?auto=format&fit=crop&w=400&q=80', price: 100, cal: 300, protein: 8, carbs: 40, fat: 12, portion: "2 pcs", shape: 'rasmalai', color: 0xFFFDD0 },
+            { id: 31, category: 'sweets', type: 'veg', name: "Kheer", img: 'https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&w=400&q=80', price: 90, cal: 280, protein: 6, carbs: 45, fat: 8, portion: "150g", shape: 'curry', color: 0xFFFACD },
+            { id: 32, category: 'sweets', type: 'veg', name: "Jalebi", img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80', price: 70, cal: 400, protein: 3, carbs: 65, fat: 15, portion: "4 pcs", shape: 'jalebi', color: 0xFFA500 },
+            { id: 33, category: 'sweets', type: 'veg', name: "Gajar Halwa", img: 'https://images.unsplash.com/photo-1666190094762-2a25f3ea5d60?auto=format&fit=crop&w=400&q=80', price: 120, cal: 380, protein: 6, carbs: 50, fat: 18, portion: "150g", shape: 'curry', color: 0xFF8C00 },
+            
+            // MILKSHAKES
+            { id: 34, category: 'milkshakes', type: 'veg', name: "Mango Lassi", img: 'https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=400&q=80', price: 80, cal: 220, protein: 6, carbs: 35, fat: 6, portion: "300ml", shape: 'glass', color: 0xFFD700 },
+            { id: 35, category: 'milkshakes', type: 'veg', name: "Rose Falooda", img: 'https://images.unsplash.com/photo-1571006084955-f15ae7b90f38?auto=format&fit=crop&w=400&q=80', price: 120, cal: 380, protein: 8, carbs: 55, fat: 14, portion: "350ml", shape: 'glass', color: 0xFFB6C1 },
+            { id: 36, category: 'milkshakes', type: 'veg', name: "Chocolate Shake", img: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=400&q=80', price: 100, cal: 320, protein: 10, carbs: 42, fat: 12, portion: "300ml", shape: 'glass', color: 0x8B4513 },
+            { id: 37, category: 'milkshakes', type: 'veg', name: "Strawberry Shake", img: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=400&q=80', price: 100, cal: 280, protein: 8, carbs: 38, fat: 10, portion: "300ml", shape: 'glass', color: 0xFF69B4 },
+            { id: 38, category: 'milkshakes', type: 'veg', name: "Badam Milk", img: 'https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=400&q=80', price: 90, cal: 250, protein: 10, carbs: 28, fat: 12, portion: "300ml", shape: 'glass', color: 0xFAEBD7 },
+            { id: 39, category: 'milkshakes', type: 'veg', name: "Cold Coffee", img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=400&q=80', price: 110, cal: 280, protein: 6, carbs: 35, fat: 12, portion: "300ml", shape: 'glass', color: 0x6F4E37 },
+        ];
+
+        const categories = [
+            { id: 'all', label: 'ALL', icon: '🍽️' },
+            { id: 'tiffins', label: 'TIFFINS', icon: '🥞' },
+            { id: 'lunch', label: 'LUNCH', icon: '🍛' },
+            { id: 'snacks', label: 'SNACKS', icon: '🥟' },
+            { id: 'dinner', label: 'DINNER', icon: '🍲' },
+            { id: 'sweets', label: 'SWEETS', icon: '🍮' },
+            { id: 'milkshakes', label: 'SHAKES', icon: '🥤' },
+            { id: 'veg', label: 'VEG', icon: '🥬' },
+            { id: 'non-veg', label: 'NON-VEG', icon: '🍗' },
+        ];
+
+        // State
+        let plateItemsMap = new Map();
+        let cart = SharedCart.getCart(); // Load cart from localStorage
+        let currentFilter = 'all';
+        let isDragging = false;
+        let draggedItem = null;
+        let draggedPlateItem = null;
+        let dragGhost = document.getElementById('drag-ghost');
+
+        const exclamations = ["स्वादिष्ट!", "Delicious!", "Mast!", "Zabardast!", "Bahut Badhiya!", "Waah!", "Tasty!", "Yummy!", "Perfect!", "Ekdum Jhakaas!"];
+
+        // ========== THREE.JS SETUP ==========
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0a0503, 0.015);
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 18, 20);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxDistance = 40;
+        controls.minDistance = 12;
+        controls.maxPolarAngle = Math.PI / 2.1;
+        controls.enablePan = false;
+        
+        // Enhanced Lighting
+        const ambientLight = new THREE.AmbientLight(0xffa64d, 0.5);
+        scene.add(ambientLight);
+        
+        const mainSpot = new THREE.SpotLight(0xffcc80, 2.5);
+        mainSpot.position.set(0, 30, 5);
+        mainSpot.angle = Math.PI / 4;
+        mainSpot.castShadow = true;
+        mainSpot.shadow.mapSize.width = 1024;
+        mainSpot.shadow.mapSize.height = 1024;
+        scene.add(mainSpot);
+        
+        const fillLight = new THREE.PointLight(0xff6600, 1);
+        fillLight.position.set(-15, 10, -15);
+        scene.add(fillLight);
+        
+        const rimLight = new THREE.PointLight(0x4488ff, 0.5);
+        rimLight.position.set(15, 5, 15);
+        scene.add(rimLight);
+
+        // Plate Group
+        const plateGroup = new THREE.Group();
+        scene.add(plateGroup);
+
+        // Enhanced Thali with metallic finish
+        const thaliGeometry = new THREE.CylinderGeometry(5.5, 5, 0.4, 64);
+        const thaliMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xc9a66b, 
+            metalness: 0.7, 
+            roughness: 0.25,
+            envMapIntensity: 1
+        });
+        const thali = new THREE.Mesh(thaliGeometry, thaliMaterial);
+        thali.receiveShadow = true;
+        plateGroup.add(thali);
+
+        // Inner plate surface
+        const innerPlate = new THREE.Mesh(
+            new THREE.CylinderGeometry(5.2, 5.2, 0.05, 64),
+            new THREE.MeshStandardMaterial({ color: 0xd4b483, metalness: 0.5, roughness: 0.4 })
+        );
+        innerPlate.position.y = 0.2;
+        plateGroup.add(innerPlate);
+
+        // Decorative Rim
+        const rimGeometry = new THREE.TorusGeometry(5.3, 0.18, 16, 64);
+        const rimMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xffd700, 
+            metalness: 0.9, 
+            roughness: 0.15 
+        });
+        const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+        rim.rotation.x = Math.PI / 2;
+        rim.position.y = 0.2;
+        plateGroup.add(rim);
+
+        // Inner decorative ring
+        const innerRim = new THREE.Mesh(
+            new THREE.TorusGeometry(3.5, 0.08, 16, 64),
+            new THREE.MeshStandardMaterial({ color: 0xe6c35c, metalness: 0.8, roughness: 0.2 })
+        );
+        innerRim.rotation.x = Math.PI / 2;
+        innerRim.position.y = 0.22;
+        plateGroup.add(innerRim);
+
+        // Small decorative bowls (katoris)
+        const bowlPositions = [
+            { x: -2.8, z: 0, scale: 1 }, { x: 2.8, z: 0, scale: 1 }, 
+            { x: 0, z: -2.8, scale: 1 }, { x: 0, z: 2.8, scale: 1 },
+            { x: -2, z: -2, scale: 0.8 }, { x: 2, z: -2, scale: 0.8 }, 
+            { x: -2, z: 2, scale: 0.8 }, { x: 2, z: 2, scale: 0.8 },
+        ];
+        
+        bowlPositions.forEach(pos => {
+            const bowlGroup = new THREE.Group();
+            
+            // Bowl body
+            const bowl = new THREE.Mesh(
+                new THREE.SphereGeometry(0.45 * pos.scale, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+                new THREE.MeshStandardMaterial({ color: 0xc9a66b, metalness: 0.6, roughness: 0.3 })
+            );
+            bowl.scale.y = 0.5;
+            bowlGroup.add(bowl);
+            
+            // Bowl rim
+            const bowlRim = new THREE.Mesh(
+                new THREE.TorusGeometry(0.45 * pos.scale, 0.04, 16, 32),
+                new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 })
+            );
+            bowlRim.rotation.x = Math.PI / 2;
+            bowlRim.position.y = 0.05;
+            bowlGroup.add(bowlRim);
+            
+            bowlGroup.position.set(pos.x, 0.25, pos.z);
+            plateGroup.add(bowlGroup);
+        });
+
+        const food3DMeshes = [];
+        
+        // ========== 3D FOOD SHAPE CREATORS ==========
+        function create3DFood(item) {
+            const group = new THREE.Group();
+            const material = new THREE.MeshStandardMaterial({ 
+                color: item.color, 
+                roughness: 0.6, 
+                metalness: 0.1 
+            });
+            
+            switch(item.shape) {
+                case 'dosa':
+                    // Cone shape for rolled dosa
+                    const dosaGeom = new THREE.ConeGeometry(0.6, 1.2, 32);
+                    const dosa = new THREE.Mesh(dosaGeom, new THREE.MeshStandardMaterial({ 
+                        color: item.color, roughness: 0.7, metalness: 0 
+                    }));
+                    dosa.rotation.z = Math.PI / 2;
+                    dosa.rotation.y = Math.random() * Math.PI;
+                    
+                    // Add crispy texture bumps
+                    const crispyMaterial = new THREE.MeshStandardMaterial({ 
+                        color: 0xB8860B, roughness: 0.8, metalness: 0 
+                    });
+                    for (let i = 0; i < 5; i++) {
+                        const bump = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.05, 8, 8),
+                            crispyMaterial
+                        );
+                        bump.position.set(
+                            (Math.random() - 0.5) * 0.8,
+                            (Math.random() - 0.5) * 0.3,
+                            0.25 + Math.random() * 0.1
+                        );
+                        dosa.add(bump);
+                    }
+                    group.add(dosa);
+                    break;
+                    
+                case 'idli':
+                    // Stack of circular discs
+                    for (let i = 0; i < 3; i++) {
+                        const idli = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.25, 0.28, 0.15, 32),
+                            new THREE.MeshStandardMaterial({ color: 0xF5F5DC, roughness: 0.9, metalness: 0 })
+                        );
+                        idli.position.set(
+                            (i - 1) * 0.55,
+                            0.08,
+                            0
+                        );
+                        group.add(idli);
+                    }
+                    break;
+                    
+                case 'vada':
+                    // Torus shape for vada
+                    for (let i = 0; i < 2; i++) {
+                        const vada = new THREE.Mesh(
+                            new THREE.TorusGeometry(0.22, 0.1, 16, 32),
+                            new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.7, metalness: 0 })
+                        );
+                        vada.rotation.x = Math.PI / 2;
+                        vada.position.set((i - 0.5) * 0.6, 0.1, 0);
+                        group.add(vada);
+                    }
+                    break;
+                    
+                case 'samosa':
+                    // Triangular pyramid
+                    const samosaGeom = new THREE.TetrahedronGeometry(0.4);
+                    const samosa = new THREE.Mesh(samosaGeom, new THREE.MeshStandardMaterial({ 
+                        color: item.color, roughness: 0.6, metalness: 0 
+                    }));
+                    samosa.rotation.x = -0.3;
+                    samosa.position.y = 0.2;
+                    
+                    // Second samosa
+                    const samosa2 = samosa.clone();
+                    samosa2.position.x = 0.5;
+                    samosa2.rotation.y = Math.PI / 3;
+                    
+                    group.add(samosa);
+                    group.add(samosa2);
+                    break;
+                    
+                case 'naan':
+                    // Teardrop/oval flat shape
+                    const naanShape = new THREE.Shape();
+                    naanShape.moveTo(0, 0.5);
+                    naanShape.quadraticCurveTo(0.4, 0.4, 0.4, 0);
+                    naanShape.quadraticCurveTo(0.3, -0.4, 0, -0.5);
+                    naanShape.quadraticCurveTo(-0.3, -0.4, -0.4, 0);
+                    naanShape.quadraticCurveTo(-0.4, 0.4, 0, 0.5);
+                    
+                    const naanGeom = new THREE.ExtrudeGeometry(naanShape, {
+                        depth: 0.08,
+                        bevelEnabled: true,
+                        bevelThickness: 0.02,
+                        bevelSize: 0.02,
+                        bevelSegments: 3
+                    });
+                    const naan = new THREE.Mesh(naanGeom, new THREE.MeshStandardMaterial({ 
+                        color: item.color, roughness: 0.8, metalness: 0 
+                    }));
+                    naan.rotation.x = -Math.PI / 2;
+                    naan.position.y = 0.05;
+                    
+                    // Add butter spots
+                    for (let i = 0; i < 4; i++) {
+                        const butter = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.04, 8, 8),
+                            new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.3 })
+                        );
+                        butter.position.set(
+                            (Math.random() - 0.5) * 0.5,
+                            (Math.random() - 0.5) * 0.6,
+                            0.1
+                        );
+                        butter.scale.y = 0.3;
+                        naan.add(butter);
+                    }
+                    group.add(naan);
+                    break;
+                    
+                case 'roti':
+                    // Flat circular bread
+                    const roti = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.4, 0.4, 0.03, 32),
+                        new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.9, metalness: 0 })
+                    );
+                    roti.position.y = 0.02;
+                    group.add(roti);
+                    break;
+                    
+                case 'curry':
+                    // Bowl of curry - hemisphere with liquid surface
+                    const curryBowl = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.35, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+                        new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.4, metalness: 0.2 })
+                    );
+                    curryBowl.scale.y = 0.5;
+                    
+                    // Curry liquid surface
+                    const curryTop = new THREE.Mesh(
+                        new THREE.CircleGeometry(0.33, 32),
+                        new THREE.MeshStandardMaterial({ 
+                            color: item.color, 
+                            roughness: 0.2, 
+                            metalness: 0.1,
+                            side: THREE.DoubleSide
+                        })
+                    );
+                    curryTop.rotation.x = -Math.PI / 2;
+                    curryTop.position.y = 0.15;
+                    
+                    group.add(curryBowl);
+                    group.add(curryTop);
+                    break;
+                    
+                case 'biryani':
+                    // Mound of rice with garnish
+                    const biryaniMound = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.45, 32, 16),
+                        new THREE.MeshStandardMaterial({ color: 0xFFFACD, roughness: 0.8, metalness: 0 })
+                    );
+                    biryaniMound.scale.set(1, 0.5, 1);
+                    biryaniMound.position.y = 0.1;
+                    
+                    // Saffron strands
+                    for (let i = 0; i < 6; i++) {
+                        const saffron = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.01, 0.01, 0.1, 8),
+                            new THREE.MeshStandardMaterial({ color: 0xFF4500 })
+                        );
+                        saffron.position.set(
+                            (Math.random() - 0.5) * 0.4,
+                            0.25,
+                            (Math.random() - 0.5) * 0.4
+                        );
+                        saffron.rotation.x = Math.random() * 0.5;
+                        saffron.rotation.z = Math.random() * 0.5;
+                        group.add(saffron);
+                    }
+                    
+                    // Fried onions
+                    for (let i = 0; i < 4; i++) {
+                        const onion = new THREE.Mesh(
+                            new THREE.TorusGeometry(0.03, 0.01, 8, 16),
+                            new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+                        );
+                        onion.position.set(
+                            (Math.random() - 0.5) * 0.35,
+                            0.28,
+                            (Math.random() - 0.5) * 0.35
+                        );
+                        group.add(onion);
+                    }
+                    
+                    group.add(biryaniMound);
+                    break;
+                    
+                case 'rice':
+                    // Pile of rice
+                    const riceMound = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.35, 32, 16),
+                        new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.9, metalness: 0 })
+                    );
+                    riceMound.scale.set(1, 0.4, 1);
+                    riceMound.position.y = 0.05;
+                    group.add(riceMound);
+                    break;
+                    
+                case 'tikka':
+                    // Chunks of grilled meat on skewer
+                    const skewer = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.02, 0.02, 1, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x8B4513, metalness: 0.5, roughness: 0.5 })
+                    );
+                    skewer.rotation.z = Math.PI / 2;
+                    skewer.position.y = 0.15;
+                    group.add(skewer);
+                    
+                    for (let i = 0; i < 4; i++) {
+                        const chunk = new THREE.Mesh(
+                            new THREE.DodecahedronGeometry(0.12),
+                            new THREE.MeshStandardMaterial({ 
+                                color: item.color, 
+                                roughness: 0.7, 
+                                metalness: 0 
+                            })
+                        );
+                        chunk.position.set((i - 1.5) * 0.25, 0.15, 0);
+                        chunk.rotation.set(Math.random(), Math.random(), Math.random());
+                        group.add(chunk);
+                    }
+                    break;
+                    
+                case 'pakora':
+                    // Irregular fried pieces
+                    for (let i = 0; i < 5; i++) {
+                        const pakora = new THREE.Mesh(
+                            new THREE.DodecahedronGeometry(0.12),
+                            new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.8, metalness: 0 })
+                        );
+                        pakora.position.set(
+                            (Math.random() - 0.5) * 0.5,
+                            0.1 + Math.random() * 0.1,
+                            (Math.random() - 0.5) * 0.5
+                        );
+                        pakora.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                        group.add(pakora);
+                    }
+                    break;
+                    
+                case 'puri':
+                    // Puffed spheres
+                    for (let i = 0; i < 5; i++) {
+                        const puri = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.12, 16, 16),
+                            new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.7, metalness: 0 })
+                        );
+                        puri.scale.y = 0.7;
+                        puri.position.set(
+                            (Math.random() - 0.5) * 0.5,
+                            0.1,
+                            (Math.random() - 0.5) * 0.5
+                        );
+                        group.add(puri);
+                    }
+                    break;
+                    
+                case 'tikki':
+                    // Flat patties
+                    for (let i = 0; i < 2; i++) {
+                        const tikki = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.2, 0.22, 0.1, 32),
+                            new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.7, metalness: 0 })
+                        );
+                        tikki.position.set((i - 0.5) * 0.5, 0.05, 0);
+                        group.add(tikki);
+                    }
+                    break;
+                    
+                case 'momo':
+                    // Dumpling shapes
+                    for (let i = 0; i < 4; i++) {
+                        const momo = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.12, 16, 12),
+                            new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.6, metalness: 0 })
+                        );
+                        momo.scale.y = 0.7;
+                        momo.position.set(
+                            (i % 2 - 0.5) * 0.3,
+                            0.08,
+                            (Math.floor(i / 2) - 0.5) * 0.3
+                        );
+                        
+                        // Add pleats on top
+                        const pleat = new THREE.Mesh(
+                            new THREE.ConeGeometry(0.04, 0.06, 8),
+                            new THREE.MeshStandardMaterial({ color: 0xFFF8DC })
+                        );
+                        pleat.position.y = 0.08;
+                        momo.add(pleat);
+                        
+                        group.add(momo);
+                    }
+                    break;
+                    
+                case 'gulabjamun':
+                    // Deep brown spheres in syrup
+                    for (let i = 0; i < 2; i++) {
+                        const gj = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.15, 16, 16),
+                            new THREE.MeshStandardMaterial({ 
+                                color: item.color, 
+                                roughness: 0.3, 
+                                metalness: 0.1 
+                            })
+                        );
+                        gj.scale.y = 1.2;
+                        gj.position.set((i - 0.5) * 0.35, 0.12, 0);
+                        group.add(gj);
+                    }
+                    
+                    // Syrup pool
+                    const syrup = new THREE.Mesh(
+                        new THREE.CircleGeometry(0.4, 32),
+                        new THREE.MeshStandardMaterial({ 
+                            color: 0xFFD700, 
+                            roughness: 0.1, 
+                            metalness: 0.3,
+                            transparent: true,
+                            opacity: 0.6
+                        })
+                    );
+                    syrup.rotation.x = -Math.PI / 2;
+                    syrup.position.y = 0.01;
+                    group.add(syrup);
+                    break;
+                    
+                case 'rasmalai':
+                    // Flat white discs in cream
+                    for (let i = 0; i < 2; i++) {
+                        const disc = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.18, 0.2, 0.08, 32),
+                            new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.5, metalness: 0 })
+                        );
+                        disc.position.set((i - 0.5) * 0.4, 0.04, 0);
+                        group.add(disc);
+                    }
+                    
+                    // Cream/milk base
+                    const cream = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.45, 0.45, 0.02, 32),
+                        new THREE.MeshStandardMaterial({ 
+                            color: 0xFFFDD0, 
+                            roughness: 0.2, 
+                            metalness: 0,
+                            transparent: true,
+                            opacity: 0.8
+                        })
+                    );
+                    group.add(cream);
+                    
+                    // Pistachio garnish
+                    for (let i = 0; i < 4; i++) {
+                        const pista = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.02, 8, 8),
+                            new THREE.MeshStandardMaterial({ color: 0x98FB98 })
+                        );
+                        pista.position.set(
+                            (Math.random() - 0.5) * 0.3,
+                            0.1,
+                            (Math.random() - 0.5) * 0.3
+                        );
+                        group.add(pista);
+                    }
+                    break;
+                    
+                case 'jalebi':
+                    // Spiral orange sweet
+                    const jalebis = [];
+                    for (let j = 0; j < 3; j++) {
+                        const points = [];
+                        for (let i = 0; i < 30; i++) {
+                            const t = i * 0.5;
+                            const r = 0.05 + t * 0.015;
+                            points.push(new THREE.Vector3(
+                                Math.cos(t) * r,
+                                0,
+                                Math.sin(t) * r
+                            ));
+                        }
+                        const curve = new THREE.CatmullRomCurve3(points);
+                        const tubeGeom = new THREE.TubeGeometry(curve, 30, 0.025, 8, false);
+                        const jalebi = new THREE.Mesh(tubeGeom, new THREE.MeshStandardMaterial({ 
+                            color: item.color, 
+                            roughness: 0.3, 
+                            metalness: 0.1 
+                        }));
+                        jalebi.position.set((j - 1) * 0.3, 0.05, 0);
+                        jalebi.rotation.x = -Math.PI / 2;
+                        group.add(jalebi);
+                    }
+                    break;
+                    
+                case 'glass':
+                    // Drink glass
+                    const glassGeom = new THREE.CylinderGeometry(0.2, 0.15, 0.6, 32, 1, true);
+                    const glassMat = new THREE.MeshStandardMaterial({ 
+                        color: 0xFFFFFF, 
+                        roughness: 0.1, 
+                        metalness: 0.2,
+                        transparent: true,
+                        opacity: 0.3
+                    });
+                    const glass = new THREE.Mesh(glassGeom, glassMat);
+                    glass.position.y = 0.3;
+                    
+                    // Drink liquid
+                    const liquid = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.18, 0.13, 0.5, 32),
+                        new THREE.MeshStandardMaterial({ 
+                            color: item.color, 
+                            roughness: 0.2, 
+                            metalness: 0 
+                        })
+                    );
+                    liquid.position.y = 0.28;
+                    
+                    // Straw
+                    const straw = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.015, 0.015, 0.8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xFF69B4 })
+                    );
+                    straw.position.set(0.1, 0.4, 0);
+                    straw.rotation.z = 0.2;
+                    
+                    group.add(glass);
+                    group.add(liquid);
+                    group.add(straw);
+                    break;
+                    
+                case 'raita':
+                    // White yogurt bowl
+                    const raitaBowl = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.3, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+                        new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.4, metalness: 0.2 })
+                    );
+                    raitaBowl.scale.y = 0.4;
+                    
+                    const yogurt = new THREE.Mesh(
+                        new THREE.CircleGeometry(0.28, 32),
+                        new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.3, metalness: 0 })
+                    );
+                    yogurt.rotation.x = -Math.PI / 2;
+                    yogurt.position.y = 0.1;
+                    
+                    // Cucumber bits
+                    for (let i = 0; i < 3; i++) {
+                        const cucumber = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.02, 0.02, 0.01, 8),
+                            new THREE.MeshStandardMaterial({ color: 0x90EE90 })
+                        );
+                        cucumber.rotation.x = Math.PI / 2;
+                        cucumber.position.set(
+                            (Math.random() - 0.5) * 0.2,
+                            0.12,
+                            (Math.random() - 0.5) * 0.2
+                        );
+                        group.add(cucumber);
+                    }
+                    
+                    group.add(raitaBowl);
+                    group.add(yogurt);
+                    break;
+                    
+                case 'chutney':
+                    // Small bowl of chutney
+                    const chutneyBowl = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+                        new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.4, metalness: 0.3 })
+                    );
+                    chutneyBowl.scale.y = 0.4;
+                    
+                    const chutneyTop = new THREE.Mesh(
+                        new THREE.CircleGeometry(0.18, 32),
+                        new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.3, metalness: 0 })
+                    );
+                    chutneyTop.rotation.x = -Math.PI / 2;
+                    chutneyTop.position.y = 0.06;
+                    
+                    group.add(chutneyBowl);
+                    group.add(chutneyTop);
+                    break;
+                    
+                default:
+                    // Generic food item - textured sphere
+                    const defaultFood = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.3, 32, 32),
+                        material
+                    );
+                    defaultFood.position.y = 0.3;
+                    group.add(defaultFood);
+            }
+            
+            group.scale.set(0.8, 0.8, 0.8);
+            return group;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            plateGroup.rotation.y += 0.002;
+            
+            // Animate food items floating slightly
+            food3DMeshes.forEach((mesh, i) => {
+                if (mesh.userData.floatOffset !== undefined) {
+                    mesh.position.y = mesh.userData.baseY + Math.sin(Date.now() * 0.002 + mesh.userData.floatOffset) * 0.02;
+                }
+            });
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        setTimeout(() => {
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => document.getElementById('loader').style.display = 'none', 800);
+            animate();
+            renderCategories();
+            renderFoodOrbit();
+        }, 1500);
+
+        // ========== APP LOGIC ==========
+        const app = {
+            filterItems(category) {
+                currentFilter = category;
+                document.querySelectorAll('.cat-btn').forEach(btn => {
+                    btn.classList.remove('bg-gradient-to-r', 'from-primary', 'to-yellow-500', 'text-black', 'border-primary', 'shadow-lg', 'shadow-primary/30');
+                    btn.classList.add('bg-black/80', 'text-white', 'border-primary/30');
+                });
+                const activeBtn = document.querySelector(`[data-cat="${category}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.remove('bg-black/80', 'text-white', 'border-primary/30');
+                    activeBtn.classList.add('bg-gradient-to-r', 'from-primary', 'to-yellow-500', 'text-black', 'border-primary', 'shadow-lg', 'shadow-primary/30');
+                }
+                renderFoodOrbit();
+            },
+
+            addToPlate(itemId) {
+                const item = menuItems.find(i => i.id === itemId);
+                if (!item) return;
+
+                if (plateItemsMap.has(itemId)) {
+                    const existing = plateItemsMap.get(itemId);
+                    existing.qty += 1;
+                    plateItemsMap.set(itemId, existing);
+                } else {
+                    plateItemsMap.set(itemId, { item, qty: 1 });
+                    this.add3DFood(item);
+                }
+
+                this.updateAll();
+                this.showExclamation();
+                confetti({ 
+                    particleCount: 30, 
+                    spread: 50, 
+                    origin: { y: 0.6 }, 
+                    colors: ['#ff9900', '#cc7700', '#FFD700', '#FF6B00'] 
+                });
+            },
+
+            add3DFood(item) {
+                const food = create3DFood(item);
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * 2 + 1;
+                food.position.set(Math.cos(angle) * radius, 0.4, Math.sin(angle) * radius);
+                food.rotation.y = Math.random() * Math.PI * 2;
+                food.userData = { 
+                    itemId: item.id, 
+                    baseY: 0.4,
+                    floatOffset: Math.random() * Math.PI * 2
+                };
+                plateGroup.add(food);
+                food3DMeshes.push(food);
+                
+                // Drop animation
+                food.scale.set(0, 0, 0);
+                food.position.y = 2;
+                gsap.to(food.position, { 
+                    y: 0.4, 
+                    duration: 0.5, 
+                    ease: "bounce.out" 
+                });
+                gsap.to(food.scale, { 
+                    x: 0.8, y: 0.8, z: 0.8, 
+                    duration: 0.4, 
+                    ease: "back.out(2)" 
+                });
+                gsap.to(food.rotation, {
+                    y: food.rotation.y + Math.PI * 2,
+                    duration: 0.6,
+                    ease: "power2.out"
+                });
+            },
+
+            removeFromPlate(itemId) {
+                if (!plateItemsMap.has(itemId)) return;
+                const existing = plateItemsMap.get(itemId);
+                if (existing.qty > 1) {
+                    existing.qty -= 1;
+                    plateItemsMap.set(itemId, existing);
+                } else {
+                    plateItemsMap.delete(itemId);
+                    const meshIndex = food3DMeshes.findIndex(m => m.userData.itemId === itemId);
+                    if (meshIndex > -1) {
+                        const mesh = food3DMeshes[meshIndex];
+                        gsap.to(mesh.scale, { x: 0, y: 0, z: 0, duration: 0.3, onComplete: () => {
+                            plateGroup.remove(mesh);
+                            food3DMeshes.splice(meshIndex, 1);
+                        }});
+                        gsap.to(mesh.position, { y: mesh.position.y + 1, duration: 0.3 });
+                        gsap.to(mesh.rotation, { y: mesh.rotation.y + Math.PI, duration: 0.3 });
+                    }
+                }
+                this.updateAll();
+            },
+
+            increaseQty(itemId) { this.addToPlate(itemId); },
+            decreaseQty(itemId) { this.removeFromPlate(itemId); },
+
+            clearPlate() {
+                plateItemsMap.clear();
+                food3DMeshes.forEach((mesh, i) => {
+                    gsap.to(mesh.scale, { x: 0, y: 0, z: 0, duration: 0.3, delay: i * 0.03, onComplete: () => plateGroup.remove(mesh) });
+                    gsap.to(mesh.position, { y: mesh.position.y + 2, duration: 0.4, delay: i * 0.03 });
+                    gsap.to(mesh.rotation, { x: Math.PI, duration: 0.4, delay: i * 0.03 });
+                });
+                food3DMeshes.length = 0;
+                this.updateAll();
+            },
+
+            updateAll() {
+                this.updateStats();
+                this.updatePlateSummary();
+                this.updateFoodOrbitBadges();
+            },
+
+            updateStats() {
+                let totalItems = 0, totalPrice = 0;
+                plateItemsMap.forEach(({ item, qty }) => { totalItems += qty; totalPrice += item.price * qty; });
+                document.getElementById('total-items').textContent = totalItems;
+                document.getElementById('total-price').textContent = '₹' + totalPrice;
+            },
+
+            updatePlateSummary() {
+                const itemsContainer = document.getElementById('plate-summary-items');
+                const footer = document.getElementById('plate-summary-footer');
+                const itemCountEl = document.getElementById('summary-item-count');
+
+                if (plateItemsMap.size === 0) {
+                    itemsContainer.innerHTML = `
+                        <div class="text-center py-10">
+                            <div class="text-6xl mb-4 animate-bounce">🍽️</div>
+                            <p class="font-bold text-gray-600 text-lg">Your plate awaits!</p>
+                            <p class="text-sm mt-2 text-gray-400">Drag delicious items to start</p>
+                            <div class="mt-4 flex justify-center gap-2 flex-wrap">
+                                <span class="px-3 py-1 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-600 rounded-full text-xs font-medium">🥘 Curries</span>
+                                <span class="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-600 rounded-full text-xs font-medium">🥗 Healthy</span>
+                                <span class="px-3 py-1 bg-gradient-to-r from-pink-100 to-rose-100 text-pink-600 rounded-full text-xs font-medium">🍮 Sweets</span>
+                            </div>
+                        </div>`;
+                    footer.classList.add('hidden');
+                    itemCountEl.textContent = '0 items';
+                    return;
+                }
+
+                footer.classList.remove('hidden');
+                let totalItems = 0, totalPrice = 0, totalCal = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+                let html = '';
+                const gradients = [
+                    'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 border-orange-200',
+                    'bg-gradient-to-br from-rose-50 via-pink-50 to-red-50 border-rose-200',
+                    'bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 border-emerald-200',
+                    'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200',
+                    'bg-gradient-to-br from-amber-50 via-yellow-50 to-lime-50 border-amber-200',
+                ];
+                
+                let itemIndex = 0;
+                plateItemsMap.forEach(({ item, qty }) => {
+                    totalItems += qty;
+                    const itemTotal = item.price * qty;
+                    const itemCal = item.cal * qty;
+                    const itemProtein = item.protein * qty;
+                    const itemCarbs = item.carbs * qty;
+                    const itemFat = item.fat * qty;
+                    totalPrice += itemTotal; totalCal += itemCal; totalProtein += itemProtein; totalCarbs += itemCarbs; totalFat += itemFat;
+
+                    const badge = item.type === 'veg' 
+                        ? `<div class="w-5 h-5 bg-gradient-to-br from-green-400 to-green-600 rounded-md flex items-center justify-center flex-shrink-0 shadow-sm"><div class="w-2 h-2 bg-white rounded-full"></div></div>`
+                        : `<div class="w-5 h-5 bg-gradient-to-br from-red-400 to-red-600 rounded-md flex items-center justify-center flex-shrink-0 shadow-sm"><div class="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[6px] border-l-transparent border-r-transparent border-b-white"></div></div>`;
+
+                    const gradient = gradients[itemIndex % gradients.length];
+                    
+                    html += `
+                        <div class="plate-summary-item ${gradient} rounded-2xl p-4 border-2 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-grab active:cursor-grabbing group relative overflow-hidden" 
+                             draggable="true" 
+                             data-plate-item-id="${item.id}"
+                             style="box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                            
+                            <!-- Decorative background pattern -->
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/50 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+                            
+                            <!-- Top Row: Image, Name, Qty Controls -->
+                            <div class="flex items-center gap-3 mb-3 relative">
+                                <div class="w-16 h-16 rounded-2xl overflow-hidden border-3 border-white flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform ring-2 ring-orange-200/50">
+                                    <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover" draggable="false">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        ${badge}
+                                        <span class="font-bold text-gray-800 text-sm truncate">${item.name}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 font-medium bg-white/50 px-2 py-0.5 rounded-full inline-block">${item.portion} × ${qty}</div>
+                                </div>
+                                <div class="flex items-center gap-1 bg-white rounded-full px-1 py-1 shadow-md border border-gray-100">
+                                    <button onclick="event.stopPropagation(); app.decreaseQty(${item.id})" 
+                                            class="w-9 h-9 rounded-full bg-gradient-to-br from-red-400 to-red-500 text-white flex items-center justify-center hover:from-red-500 hover:to-red-600 transition-all text-xl font-bold shadow-sm active:scale-90">−</button>
+                                    <span class="w-8 text-center font-bold text-gray-800 text-base">${qty}</span>
+                                    <button onclick="event.stopPropagation(); app.increaseQty(${item.id})" 
+                                            class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-green-500 text-white flex items-center justify-center hover:from-green-500 hover:to-green-600 transition-all text-xl font-bold shadow-sm active:scale-90">+</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Nutrition Grid - Colorful Pills -->
+                            <div class="flex flex-wrap gap-2 pt-3 border-t border-dashed border-gray-300/50">
+                                <div class="flex items-center gap-1.5 bg-gradient-to-r from-emerald-400 to-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
+                                    <span>💰</span>
+                                    <span>₹${itemTotal}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 bg-gradient-to-r from-orange-400 to-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
+                                    <span>🔥</span>
+                                    <span>${itemCal} cal</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 bg-gradient-to-r from-blue-400 to-indigo-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
+                                    <span>💪</span>
+                                    <span>${itemProtein.toFixed(0)}g</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 bg-gradient-to-r from-purple-400 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
+                                    <span>🍞</span>
+                                    <span>${itemCarbs.toFixed(0)}g</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Drag hint -->
+                            <div class="mt-3 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <span class="text-[10px] text-gray-500 bg-white/80 px-3 py-1 rounded-full shadow-sm inline-flex items-center gap-1">
+                                    <span class="animate-pulse">🗑️</span> Drag to bin to remove
+                                </span>
+                            </div>
+                        </div>`;
+                    itemIndex++;
+                });
+
+                itemsContainer.innerHTML = html;
+                itemCountEl.textContent = `${totalItems} item${totalItems > 1 ? 's' : ''}`;
+                document.getElementById('footer-total-price').textContent = '₹' + totalPrice;
+                document.getElementById('footer-total-cal').textContent = totalCal;
+                document.getElementById('footer-total-protein').textContent = totalProtein.toFixed(1) + 'g';
+                document.getElementById('footer-total-carbs').textContent = totalCarbs.toFixed(1) + 'g';
+                
+                // Setup drag listeners for plate summary items
+                this.setupPlateSummaryDrag();
+            },
+            
+            setupPlateSummaryDrag() {
+                const items = document.querySelectorAll('.plate-summary-item');
+                const trashBin = document.getElementById('trash-bin');
+                
+                items.forEach(item => {
+                    // Mouse drag events
+                    item.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('plate-item-id', item.dataset.plateItemId);
+                        e.dataTransfer.effectAllowed = 'move';
+                        
+                        // Create custom drag image
+                        const dragImg = document.createElement('div');
+                        dragImg.style.cssText = 'width: 60px; height: 60px; background: #ef4444; border-radius: 50%; position: absolute; top: -1000px;';
+                        document.body.appendChild(dragImg);
+                        e.dataTransfer.setDragImage(dragImg, 30, 30);
+                        setTimeout(() => dragImg.remove(), 0);
+                        
+                        item.classList.add('dragging');
+                        trashBin.classList.add('animate-pulse', 'ring-4', 'ring-red-400', 'ring-offset-2', 'ring-offset-black');
+                        document.getElementById('trash-hint').style.opacity = '1';
+                        
+                        // Animate trash bin
+                        gsap.to(trashBin, { scale: 1.15, duration: 0.3 });
+                    });
+                    
+                    item.addEventListener('dragend', (e) => {
+                        item.classList.remove('dragging');
+                        trashBin.classList.remove('animate-pulse', 'ring-4', 'ring-red-400', 'ring-offset-2', 'ring-offset-black', 'drag-active');
+                        document.getElementById('trash-hint').style.opacity = '0';
+                        gsap.to(trashBin, { scale: 1, duration: 0.3 });
+                    });
+                    
+                    // Touch support for plate items - FIXED
+                    let touchStartY = 0;
+                    let touchStartX = 0;
+                    let isDraggingItem = false;
+                    
+                    item.addEventListener('touchstart', (e) => {
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+                        isDraggingItem = false;
+                        
+                        // Long press to start drag
+                        this.touchHoldTimer = setTimeout(() => {
+                            isDraggingItem = true;
+                            this.draggedPlateItem = item;
+                            item.classList.add('dragging');
+                            
+                            // Show drag ghost
+                            const itemData = menuItems.find(m => m.id === parseInt(item.dataset.plateItemId));
+                            if (itemData) {
+                                dragGhost.style.backgroundImage = `url(${itemData.img})`;
+                                dragGhost.style.display = 'block';
+                                dragGhost.style.left = touchStartX + 'px';
+                                dragGhost.style.top = touchStartY + 'px';
+                            }
+                            
+                            trashBin.classList.add('animate-pulse', 'ring-4', 'ring-red-400', 'ring-offset-2', 'ring-offset-black');
+                            document.getElementById('trash-hint').style.opacity = '1';
+                            gsap.to(trashBin, { scale: 1.15, duration: 0.3 });
+                            
+                            // Vibrate feedback if available
+                            if (navigator.vibrate) navigator.vibrate(50);
+                        }, 300);
+                    }, { passive: true });
+                    
+                    item.addEventListener('touchmove', (e) => {
+                        const touch = e.touches[0];
+                        const moveX = Math.abs(touch.clientX - touchStartX);
+                        const moveY = Math.abs(touch.clientY - touchStartY);
+                        
+                        // Cancel long press if user is scrolling
+                        if (!isDraggingItem && (moveX > 10 || moveY > 10)) {
+                            clearTimeout(this.touchHoldTimer);
+                        }
+                        
+                        if (!isDraggingItem || !this.draggedPlateItem) return;
+                        
+                        e.preventDefault();
+                        
+                        // Update ghost position
+                        dragGhost.style.left = touch.clientX + 'px';
+                        dragGhost.style.top = touch.clientY + 'px';
+                        
+                        // Check if over trash
+                        const trashRect = trashBin.getBoundingClientRect();
+                        const isOverTrash = touch.clientX >= trashRect.left - 20 && 
+                                           touch.clientX <= trashRect.right + 20 && 
+                                           touch.clientY >= trashRect.top - 20 && 
+                                           touch.clientY <= trashRect.bottom + 20;
+                        trashBin.classList.toggle('drag-active', isOverTrash);
+                    }, { passive: false });
+                    
+                    item.addEventListener('touchend', (e) => {
+                        clearTimeout(this.touchHoldTimer);
+                        
+                        if (!isDraggingItem || !this.draggedPlateItem) {
+                            isDraggingItem = false;
+                            return;
+                        }
+                        
+                        const touch = e.changedTouches[0];
+                        const trashRect = trashBin.getBoundingClientRect();
+                        const isOverTrash = touch.clientX >= trashRect.left - 20 && 
+                                           touch.clientX <= trashRect.right + 20 && 
+                                           touch.clientY >= trashRect.top - 20 && 
+                                           touch.clientY <= trashRect.bottom + 20;
+                        
+                        if (isOverTrash) {
+                            const itemId = parseInt(this.draggedPlateItem.dataset.plateItemId);
+                            this.removeItemCompletely(itemId);
+                            
+                            // Success animation
+                            confetti({ 
+                                particleCount: 15, 
+                                spread: 40, 
+                                origin: { x: trashRect.left / window.innerWidth + 0.05, y: trashRect.top / window.innerHeight }, 
+                                colors: ['#ef4444', '#f87171'] 
+                            });
+                        }
+                        
+                        // Reset
+                        this.draggedPlateItem.classList.remove('dragging');
+                        dragGhost.style.display = 'none';
+                        trashBin.classList.remove('animate-pulse', 'ring-4', 'ring-red-400', 'ring-offset-2', 'ring-offset-black', 'drag-active');
+                        document.getElementById('trash-hint').style.opacity = '0';
+                        gsap.to(trashBin, { scale: 1, duration: 0.3 });
+                        this.draggedPlateItem = null;
+                        isDraggingItem = false;
+                    });
+                    
+                    item.addEventListener('touchcancel', () => {
+                        clearTimeout(this.touchHoldTimer);
+                        if (this.draggedPlateItem) {
+                            this.draggedPlateItem.classList.remove('dragging');
+                        }
+                        dragGhost.style.display = 'none';
+                        trashBin.classList.remove('animate-pulse', 'ring-4', 'ring-red-400', 'ring-offset-2', 'ring-offset-black', 'drag-active');
+                        document.getElementById('trash-hint').style.opacity = '0';
+                        gsap.to(trashBin, { scale: 1, duration: 0.3 });
+                        this.draggedPlateItem = null;
+                    });
+                });
+                
+                // Trash bin drop handlers
+                trashBin.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    trashBin.classList.add('drag-active');
+                });
+                
+                trashBin.addEventListener('dragleave', (e) => {
+                    trashBin.classList.remove('drag-active');
+                });
+                
+                trashBin.addEventListener('dragenter', (e) => {
+                    e.preventDefault();
+                    trashBin.classList.add('drag-active');
+                });
+                
+                trashBin.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const itemId = e.dataTransfer.getData('plate-item-id');
+                    if (itemId) {
+                        this.removeItemCompletely(parseInt(itemId));
+                        
+                        // Success animation
+                        gsap.to(trashBin, { 
+                            scale: 1.3, 
+                            duration: 0.15, 
+                            yoyo: true, 
+                            repeat: 1,
+                            ease: "power2.out"
+                        });
+                        
+                        confetti({ 
+                            particleCount: 20, 
+                            spread: 50, 
+                            origin: { x: 0.9, y: 0.8 }, 
+                            colors: ['#ef4444', '#f87171', '#fca5a5'] 
+                        });
+                    }
+                    trashBin.classList.remove('drag-active', 'animate-pulse', 'ring-4', 'ring-red-400', 'ring-offset-2', 'ring-offset-black');
+                    document.getElementById('trash-hint').style.opacity = '0';
+                });
+            },
+            
+            removeItemCompletely(itemId) {
+                if (!plateItemsMap.has(itemId)) return;
+                plateItemsMap.delete(itemId);
+                
+                // Remove 3D mesh with explosion animation
+                const meshIndex = food3DMeshes.findIndex(m => m.userData.itemId === itemId);
+                if (meshIndex > -1) {
+                    const mesh = food3DMeshes[meshIndex];
+                    
+                    // Explosion effect
+                    gsap.to(mesh.scale, { 
+                        x: 1.5, y: 1.5, z: 1.5, 
+                        duration: 0.15,
+                        onComplete: () => {
+                            gsap.to(mesh.scale, { 
+                                x: 0, y: 0, z: 0, 
+                                duration: 0.2,
+                                onComplete: () => {
+                                    plateGroup.remove(mesh);
+                                    food3DMeshes.splice(meshIndex, 1);
+                                }
+                            });
+                        }
+                    });
+                    gsap.to(mesh.position, { y: mesh.position.y + 2, duration: 0.35 });
+                    gsap.to(mesh.rotation, { x: Math.PI * 2, y: Math.PI, duration: 0.35 });
+                }
+                
+                this.updateAll();
+            },
+
+            updateFoodOrbitBadges() {
+                menuItems.forEach(item => {
+                    const badge = document.getElementById(`qty-badge-${item.id}`);
+                    if (badge) {
+                        const data = plateItemsMap.get(item.id);
+                        if (data && data.qty > 0) {
+                            badge.textContent = data.qty;
+                            badge.classList.add('visible');
+                        } else {
+                            badge.classList.remove('visible');
+                        }
+                    }
+                });
+            },
+
+            showExclamation() {
+                const txt = document.getElementById('super-text');
+                txt.innerText = exclamations[Math.floor(Math.random() * exclamations.length)];
+                gsap.fromTo(txt, 
+                    { scale: 0, rotation: -15, opacity: 1 }, 
+                    { scale: 1.2, rotation: 0, duration: 0.5, ease: "back.out(2)", 
+                        onComplete: () => gsap.to(txt, { scale: 2, opacity: 0, duration: 0.5, delay: 0.3 }) 
+                    }
+                );
+            },
+
+            addToCart() {
+                if (plateItemsMap.size === 0) {
+                    // Shake animation for empty plate
+                    gsap.to('#plate-summary', { x: -10, duration: 0.1, yoyo: true, repeat: 5 });
+                    return;
+                }
+                
+                let totalPrice = 0, totalCal = 0, itemCount = 0;
+                const itemsList = [];
+                plateItemsMap.forEach(({ item, qty }) => { 
+                    totalPrice += item.price * qty; 
+                    totalCal += item.cal * qty; 
+                    itemCount += qty; 
+                    itemsList.push({ ...item, qty }); 
+                });
+                
+                // Use SharedCart to add item - syncs with index.html
+                cart = SharedCart.addItem({ 
+                    id: Date.now(), 
+                    name: `Custom Thali (${itemCount} items)`, 
+                    items: itemsList, 
+                    price: totalPrice, 
+                    cal: totalCal, 
+                    img: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=400&q=80' 
+                });
+                
+                this.clearPlate();
+                this.updateCartUI();
+                
+                // Show success toast
+                this.showAddedToast(`Thali added to cart! ₹${totalPrice}`);
+                
+                confetti({ 
+                    particleCount: 100, 
+                    spread: 80, 
+                    origin: { y: 0.5 }, 
+                    colors: ['#ff9900', '#22c55e', '#FFD700', '#FF6B00', '#00FF00'] 
+                });
+            },
+            
+            showAddedToast(message) {
+                // Create or get toast element
+                let toast = document.getElementById('cart-toast');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'cart-toast';
+                    toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-full shadow-2xl z-[200] flex items-center gap-3 transition-all duration-500';
+                    toast.style.transform = 'translateX(-50%) translateY(-100px)';
+                    toast.style.opacity = '0';
+                    document.body.appendChild(toast);
+                }
+                
+                toast.innerHTML = `<span class="text-xl">✅</span><span class="font-bold">${message}</span>`;
+                toast.style.transform = 'translateX(-50%) translateY(0)';
+                toast.style.opacity = '1';
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    toast.style.transform = 'translateX(-50%) translateY(-100px)';
+                    toast.style.opacity = '0';
+                }, 3000);
+            },
+
+            updateCartUI() {
+                cart = SharedCart.getCart(); // Always get fresh cart data
+                document.getElementById('cart-count').textContent = cart.length;
+            }
+        };
+
+        // ========== RENDER FUNCTIONS ==========
+        function renderCategories() {
+            const container = document.getElementById('category-filter');
+            container.innerHTML = categories.map(cat => `
+                <button data-cat="${cat.id}" onclick="app.filterItems('${cat.id}')" 
+                    class="cat-btn px-3 py-2 md:px-4 md:py-2.5 rounded-full text-[10px] md:text-xs font-bold border-2 transition-all duration-300 whitespace-nowrap hover:scale-105 active:scale-95
+                    ${cat.id === 'all' ? 'bg-gradient-to-r from-primary to-yellow-500 text-black border-primary shadow-lg shadow-primary/30' : 'bg-black/80 text-white border-primary/30 hover:border-primary hover:bg-primary/20'}">
+                    <span class="mr-1">${cat.icon}</span>${cat.label}
+                </button>
+            `).join('');
+        }
+
+        function renderFoodOrbit() {
+            const orbitContainer = document.getElementById('food-orbit');
+            let filteredItems;
+            
+            if (currentFilter === 'all') filteredItems = menuItems;
+            else if (currentFilter === 'veg') filteredItems = menuItems.filter(i => i.type === 'veg');
+            else if (currentFilter === 'non-veg') filteredItems = menuItems.filter(i => i.type === 'non-veg');
+            else filteredItems = menuItems.filter(i => i.category === currentFilter);
+
+            const itemCount = filteredItems.length;
+            const isMobile = window.innerWidth < 640;
+            const isTablet = window.innerWidth < 1024;
+            
+            const baseRadius = isMobile ? Math.min(window.innerWidth, window.innerHeight) * 0.36 : 
+                              isTablet ? Math.min(window.innerWidth, window.innerHeight) * 0.34 : 
+                              Math.min(window.innerWidth, window.innerHeight) * 0.31;
+            
+            const itemSize = isMobile ? 65 : isTablet ? 80 : 90;
+            
+            orbitContainer.style.width = `${baseRadius * 2 + itemSize}px`;
+            orbitContainer.style.height = `${baseRadius * 2 + itemSize}px`;
+
+            orbitContainer.innerHTML = filteredItems.map((item, index) => {
+                const angle = (index / itemCount) * Math.PI * 2 - Math.PI / 2;
+                const x = Math.cos(angle) * baseRadius;
+                const y = Math.sin(angle) * baseRadius;
+                const data = plateItemsMap.get(item.id);
+                const qty = data ? data.qty : 0;
+
+                return `
+                    <div class="food-item" data-id="${item.id}" draggable="true"
+                         style="left: calc(50% + ${x}px - ${itemSize/2}px); top: calc(50% + ${y}px - ${itemSize/2}px); width: ${itemSize}px; height: ${itemSize}px; animation-delay: ${index * 0.05}s;">
+                        <div class="food-item-inner">
+                            <img src="${item.img}" alt="${item.name}" draggable="false">
+                        </div>
+                        <div class="price-badge">₹${item.price}</div>
+                        <div class="qty-badge ${qty > 0 ? 'visible' : ''}" id="qty-badge-${item.id}">${qty}</div>
+                        <div class="food-label">${item.name}</div>
+                    </div>`;
+            }).join('');
+
+            setupDragListeners();
+        }
+
+        // ========== DRAG & DROP ==========
+        function setupDragListeners() {
+            document.querySelectorAll('.food-item').forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                item.addEventListener('touchstart', handleTouchStart, { passive: false });
+                item.addEventListener('touchmove', handleTouchMove, { passive: false });
+                item.addEventListener('touchend', handleTouchEnd);
+            });
+
+            const plateZone = document.getElementById('plate-zone');
+            plateZone.addEventListener('dragover', e => { e.preventDefault(); plateZone.classList.add('drag-over'); });
+            plateZone.addEventListener('dragleave', () => plateZone.classList.remove('drag-over'));
+            plateZone.addEventListener('drop', handleDrop);
+
+            const trashBin = document.getElementById('trash-bin');
+            trashBin.addEventListener('dragover', e => { 
+                e.preventDefault(); 
+                trashBin.classList.add('drag-active'); 
+            });
+            trashBin.addEventListener('dragleave', () => trashBin.classList.remove('drag-active'));
+            trashBin.addEventListener('dragenter', e => {
+                e.preventDefault();
+                trashBin.classList.add('drag-active');
+            });
+        }
+
+        function handleDragStart(e) {
+            isDragging = true;
+            draggedItem = e.target.closest('.food-item');
+            const item = menuItems.find(i => i.id === parseInt(draggedItem.dataset.id));
+            e.dataTransfer.setData('text/plain', item.id);
+            dragGhost.style.backgroundImage = `url(${item.img})`;
+            dragGhost.style.display = 'block';
+            updateGhostPosition(e.clientX, e.clientY);
+            draggedItem.style.opacity = '0.4';
+            draggedItem.style.transform = 'scale(0.9)';
+        }
+
+        function handleDragEnd() {
+            isDragging = false;
+            dragGhost.style.display = 'none';
+            if (draggedItem) {
+                draggedItem.style.opacity = '1';
+                draggedItem.style.transform = '';
+            }
+            draggedItem = null;
+            document.getElementById('plate-zone').classList.remove('drag-over');
+            document.getElementById('trash-bin').classList.remove('drag-active');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('plate-zone').classList.remove('drag-over');
+            const itemId = parseInt(e.dataTransfer.getData('text/plain'));
+            if (itemId) app.addToPlate(itemId);
+        }
+
+        // Touch handlers
+        function handleTouchStart(e) {
+            e.preventDefault();
+            isDragging = true;
+            draggedItem = e.target.closest('.food-item');
+            const item = menuItems.find(i => i.id === parseInt(draggedItem.dataset.id));
+            const touch = e.touches[0];
+            dragGhost.style.backgroundImage = `url(${item.img})`;
+            dragGhost.style.display = 'block';
+            updateGhostPosition(touch.clientX, touch.clientY);
+            draggedItem.style.opacity = '0.4';
+            draggedItem.style.transform = 'scale(0.9)';
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            updateGhostPosition(touch.clientX, touch.clientY);
+            
+            const plateZone = document.getElementById('plate-zone');
+            const plateRect = plateZone.getBoundingClientRect();
+            const isOverPlate = touch.clientX >= plateRect.left && touch.clientX <= plateRect.right && touch.clientY >= plateRect.top && touch.clientY <= plateRect.bottom;
+            plateZone.classList.toggle('drag-over', isOverPlate);
+
+            const trashBin = document.getElementById('trash-bin');
+            const trashRect = trashBin.getBoundingClientRect();
+            const isOverTrash = touch.clientX >= trashRect.left && touch.clientX <= trashRect.right && touch.clientY >= trashRect.top && touch.clientY <= trashRect.bottom;
+            trashBin.classList.toggle('drag-active', isOverTrash);
+        }
+
+        function handleTouchEnd(e) {
+            if (!isDragging) return;
+            const touch = e.changedTouches[0];
+            const plateZone = document.getElementById('plate-zone');
+            const plateRect = plateZone.getBoundingClientRect();
+            if (touch.clientX >= plateRect.left && touch.clientX <= plateRect.right && touch.clientY >= plateRect.top && touch.clientY <= plateRect.bottom && draggedItem) {
+                app.addToPlate(parseInt(draggedItem.dataset.id));
+            }
+            isDragging = false;
+            dragGhost.style.display = 'none';
+            if (draggedItem) {
+                draggedItem.style.opacity = '1';
+                draggedItem.style.transform = '';
+            }
+            draggedItem = null;
+            plateZone.classList.remove('drag-over');
+            document.getElementById('trash-bin').classList.remove('drag-active');
+        }
+
+        function updateGhostPosition(x, y) {
+            dragGhost.style.left = x + 'px';
+            dragGhost.style.top = y + 'px';
+        }
+
+        document.addEventListener('dragover', e => { if (isDragging) updateGhostPosition(e.clientX, e.clientY); });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderFoodOrbit();
+        });
+
+        app.updateCartUI();
+        
+        // ========== CART SYNC WITH INDEX.HTML ==========
+        // Listen for cart changes from other tabs/windows
+        SharedCart.onCartChange(function(newCart) {
+            cart = newCart;
+            app.updateCartUI();
+        });
+        
+        // Refresh cart when page gets focus (returning from index.html)
+        window.addEventListener('focus', function() {
+            cart = SharedCart.getCart();
+            app.updateCartUI();
+        });
+    </script>
+
+</body>
+</html>
