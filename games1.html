@@ -259,6 +259,7 @@
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
             transition: all 0.3s ease;
             font-size: 14px;
+            text-decoration: none;
         }
 
         .exit-button:hover {
@@ -723,6 +724,8 @@
             padding: 20px;
             cursor: pointer;
             transition: background 0.3s ease;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .reaction-container.waiting {
@@ -793,6 +796,9 @@
             text-align: center;
             padding: 20px;
             border-radius: 20px;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .overlay.active {
@@ -1050,19 +1056,32 @@
 
 <script>
     // ==================== DEVICE DETECTION ====================
+    // Check if device is touch-capable (mobile or tablet)
+    const isTouchDevice = ('ontouchstart' in window) || 
+                          (navigator.maxTouchPoints > 0) || 
+                          (navigator.msMaxTouchPoints > 0) ||
+                          (window.matchMedia("(pointer: coarse)").matches);
+    
+    // Get device type for display purposes
     function getDeviceType() {
-        const ua = navigator.userAgent;
-        if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
-            return 'tablet';
-        }
-        if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
-            return 'mobile';
-        }
+        const width = window.innerWidth;
+        if (width <= 480) return 'mobile';
+        if (width <= 1024) return 'tablet';
         return 'desktop';
     }
 
-    const deviceType = getDeviceType();
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    // For controls, treat both mobile and tablet as touch devices
+    function isTouchMode() {
+        return isTouchDevice;
+    }
+
+    let deviceType = getDeviceType();
+    
+    // Update on resize
+    window.addEventListener('resize', () => {
+        deviceType = getDeviceType();
+        updateControlsDisplay(activeGame);
+    });
 
     // Update controls display based on device
     function updateControlsDisplay(gameId = null) {
@@ -1072,62 +1091,84 @@
         let deviceIcon = '🖥️';
         let deviceName = 'Desktop';
         
-        if (deviceType === 'mobile') {
-            deviceIcon = '📱';
-            deviceName = 'Mobile';
-        } else if (deviceType === 'tablet') {
-            deviceIcon = '📲';
-            deviceName = 'Tablet';
+        // Show touch controls for both mobile and tablet
+        if (isTouchDevice) {
+            if (deviceType === 'mobile') {
+                deviceIcon = '📱';
+                deviceName = 'Mobile';
+            } else if (deviceType === 'tablet') {
+                deviceIcon = '📲';
+                deviceName = 'Tablet';
+            }
         }
         
         deviceBadge.innerHTML = `${deviceIcon} ${deviceName}`;
+        
+        // Use touch controls for both mobile AND tablet
+        const controlType = isTouchDevice ? 'touch' : 'desktop';
         
         // Game-specific controls
         const gameControls = {
             'memoryMatch': {
                 desktop: '<p>🖱️ Click cards to flip them</p><p>🧠 Match all pairs to win!</p>',
-                mobile: '<p>👆 Tap cards to flip them</p><p>🧠 Match all pairs to win!</p>',
-                tablet: '<p>👆 Tap cards to flip them</p><p>🧠 Match all pairs to win!</p>'
+                touch: '<p>👆 Tap cards to flip them</p><p>🧠 Match all pairs to win!</p>'
             },
             'carAvoid': {
                 desktop: '<p>⌨️ ← → or A/D to switch lanes</p><p>⏸️ Spacebar or click to pause</p>',
-                mobile: '<p>👆 Use buttons below to move</p><p>👆 Tap game to pause</p>',
-                tablet: '<p>👆 Use buttons below to move</p><p>👆 Tap game to pause</p>'
+                touch: '<p>👆 Use ◀ ▶ buttons to move</p><p>👆 Tap game area to pause</p>'
             },
             'ballBounce': {
                 desktop: '<p>⌨️ ← → or A/D to move paddle</p><p>⏸️ Spacebar or click to pause</p>',
-                mobile: '<p>👆 Use buttons below to move</p><p>👆 Tap game to pause</p>',
-                tablet: '<p>👆 Use buttons below to move</p><p>👆 Tap game to pause</p>'
+                touch: '<p>👆 Use ◀ ▶ buttons to move</p><p>👆 Tap game area to pause</p>'
             },
             'game2048': {
                 desktop: '<p>⌨️ Arrow keys to slide tiles</p><p>🎯 Combine to reach 2048!</p>',
-                mobile: '<p>👆 Swipe to slide tiles</p><p>🎯 Combine to reach 2048!</p>',
-                tablet: '<p>👆 Swipe to slide tiles</p><p>🎯 Combine to reach 2048!</p>'
+                touch: '<p>👆 Swipe ↑↓←→ to slide tiles</p><p>🎯 Combine to reach 2048!</p>'
             },
             'flappyBird': {
                 desktop: '<p>⌨️ Spacebar or click to fly</p><p>🐦 Avoid the pipes!</p>',
-                mobile: '<p>👆 Tap anywhere to fly</p><p>🐦 Avoid the pipes!</p>',
-                tablet: '<p>👆 Tap anywhere to fly</p><p>🐦 Avoid the pipes!</p>'
+                touch: '<p>👆 Tap anywhere to fly</p><p>🐦 Avoid the pipes!</p>'
             },
             'simonSays': {
                 desktop: '<p>🖱️ Click colored buttons</p><p>🔴 Repeat the pattern!</p>',
-                mobile: '<p>👆 Tap colored buttons</p><p>🔴 Repeat the pattern!</p>',
-                tablet: '<p>👆 Tap colored buttons</p><p>🔴 Repeat the pattern!</p>'
+                touch: '<p>👆 Tap colored buttons</p><p>🔴 Repeat the pattern!</p>'
             },
             'reactionTest': {
                 desktop: '<p>🖱️ Click when green</p><p>⚡ Test your reflexes!</p>',
-                mobile: '<p>👆 Tap when green</p><p>⚡ Test your reflexes!</p>',
-                tablet: '<p>👆 Tap when green</p><p>⚡ Test your reflexes!</p>'
+                touch: '<p>👆 Tap when screen turns GREEN</p><p>⚡ Test your reflexes!</p>'
+            },
+            'rockPaperScissors': {
+                desktop: '<p>🖱️ Click your choice</p><p>✂️ Beat the computer!</p>',
+                touch: '<p>👆 Tap your choice</p><p>✂️ Beat the computer!</p>'
+            },
+            'whackMole': {
+                desktop: '<p>🖱️ Click the moles</p><p>🐹 Be quick!</p>',
+                touch: '<p>👆 Tap the moles</p><p>🐹 Be quick!</p>'
+            },
+            'ticTacToe': {
+                desktop: '<p>🖱️ Click to place X</p><p>⭕ Beat the AI!</p>',
+                touch: '<p>👆 Tap to place X</p><p>⭕ Beat the AI!</p>'
+            },
+            'colorGuess': {
+                desktop: '<p>🖱️ Click matching color</p><p>🎨 Find the match!</p>',
+                touch: '<p>👆 Tap matching color</p><p>🎨 Find the match!</p>'
+            },
+            'sudoku': {
+                desktop: '<p>⌨️ Type numbers 1-9</p><p>🔢 Fill the grid!</p>',
+                touch: '<p>👆 Tap cell, enter number</p><p>🔢 Fill the grid!</p>'
+            },
+            'numberGuess': {
+                desktop: '<p>⌨️ Type your guess</p><p>🔮 Find the number!</p>',
+                touch: '<p>👆 Enter your guess</p><p>🔮 Find the number!</p>'
             },
             'default': {
                 desktop: '<p>⌨️ Arrow Keys / W/A/S/D for movement</p><p>⏸️ Spacebar to start/pause</p>',
-                mobile: '<p>👆 Tap to interact</p><p>👆 Use on-screen controls</p>',
-                tablet: '<p>👆 Tap to interact</p><p>👆 Use on-screen controls</p>'
+                touch: '<p>👆 Tap to interact</p><p>👆 Use on-screen controls</p>'
             }
         };
         
         const controls = gameControls[gameId] || gameControls['default'];
-        controlsText.innerHTML = controls[deviceType];
+        controlsText.innerHTML = controls[controlType];
     }
 
     // ==================== PARTICLE SYSTEM FOR WELCOME SCREEN ====================
@@ -1222,6 +1263,10 @@
     const exitButton = document.getElementById('exitButton');
 
     document.getElementById('enterHubButton').addEventListener('click', hideWelcomeScene);
+    document.getElementById('enterHubButton').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        hideWelcomeScene();
+    });
 
     function hideWelcomeScene() {
         welcomeOverlay.classList.add('hidden');
@@ -1445,8 +1490,23 @@
         memoryMatchState.overlayEl = document.getElementById('memoryMatchOverlay');
         memoryMatchState.scoreboardEl = document.getElementById('memoryMatchScoreboard');
         
+        // Add touch event to overlay
+        memoryMatchState.overlayEl.addEventListener('click', startMemoryFromOverlay);
+        memoryMatchState.overlayEl.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            startMemoryFromOverlay();
+        });
+        
         resetMemoryMatchGame();
         updateMemoryOverlay('START', '🧩 Memory Match', 'Tap to start!');
+    }
+
+    function startMemoryFromOverlay() {
+        if (memoryMatchState.isPaused && memoryMatchState.overlayEl.classList.contains('active')) {
+            memoryMatchState.isPaused = false;
+            memoryMatchState.overlayEl.classList.remove('active');
+            startMemoryTimer();
+        }
     }
 
     function resetMemoryMatchGame() {
@@ -1568,7 +1628,7 @@
         memoryMatchState.overlayEl.innerHTML = `
             <h2 class="text-2xl md:text-4xl font-extrabold ${colorClass}">${title}</h2>
             <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
-            <button onclick="startNewMemoryGame()" class="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105">
+            <button onclick="startNewMemoryGame(); event.stopPropagation();" class="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105">
                 ${state === 'WIN' ? '🎉 Play Again' : '▶ Start Game'}
             </button>
         `;
@@ -1612,6 +1672,7 @@
         gameScreenEl.innerHTML = `<canvas id="carAvoidCanvas"></canvas><div id="carAvoidOverlay" class="overlay"></div>`;
         headerSubtitleEl.textContent = isTouchDevice ? 'Use buttons to switch lanes!' : 'Use Left/Right to switch lanes!';
         
+        // Show controls for touch devices (mobile AND tablet)
         if (isTouchDevice) {
             mobileControlsEl.classList.remove('hidden');
         }
@@ -1636,12 +1697,48 @@
 
         resetCarAvoidGame();
         document.onkeydown = carHandleKeyDown;
-        carCanvas.addEventListener('click', toggleCarPause);
-        carCanvas.addEventListener('touchend', (e) => {
+        
+        // Add click event to canvas
+        carCanvas.addEventListener('click', function(e) {
             e.preventDefault();
-            toggleCarPause();
+            if (carAvoidState.isPaused) {
+                startCarGame();
+            } else {
+                toggleCarPause();
+            }
         });
+        
+        // Add touch event to canvas
+        carCanvas.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            if (carAvoidState.isPaused) {
+                startCarGame();
+            } else {
+                toggleCarPause();
+            }
+        });
+        
+        // Add click/touch events to overlay for starting game
+        carOverlayEl.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            startCarGame();
+        });
+        
+        carOverlayEl.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            startCarGame();
+        });
+        
         gameLoopId = requestAnimationFrame(carLoop);
+    }
+
+    function startCarGame() {
+        if (carAvoidState.isPaused) {
+            carAvoidState.isPaused = false;
+            carOverlayEl.classList.remove('active');
+        }
     }
 
     function resetCarAvoidGame() {
@@ -1652,14 +1749,14 @@
         carAvoidState.lastObstacleTime = 0;
         carAvoidState.obstacleInterval = 1000;
         carAvoidState.isPaused = true;
-        updateCarOverlay('START', 'Score: 0', isTouchDevice ? 'Tap to start!' : 'Press SPACE or tap to start!');
+        updateCarOverlay('START', '🚗 Car Avoid', 'Tap to start!');
     }
 
     function toggleCarPause() {
         if (activeGame !== 'carAvoid') return;
         carAvoidState.isPaused = !carAvoidState.isPaused;
         if (carAvoidState.isPaused) {
-            updateCarOverlay('PAUSED', `Score: ${carAvoidState.score}`, 'Game Paused');
+            updateCarOverlay('PAUSED', `Score: ${carAvoidState.score}`, 'Game Paused - Tap to continue');
         } else {
             carOverlayEl.classList.remove('active');
         }
@@ -1671,7 +1768,7 @@
         carOverlayEl.innerHTML = `
             <h2 class="text-2xl md:text-3xl font-extrabold ${colorClass}">${title}</h2>
             <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
-            ${state === 'GAMEOVER' ? `<button onclick="startNewCarGame()" class="mt-6 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 px-8 rounded-full">🔄 Try Again</button>` : ''}
+            ${state === 'GAMEOVER' ? `<button onclick="startNewCarGame(); event.stopPropagation();" class="mt-6 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 px-8 rounded-full">🔄 Try Again</button>` : ''}
         `;
         carOverlayEl.classList.add('active');
     }
@@ -1687,7 +1784,11 @@
             e.preventDefault();
         }
         if (e.key === ' ') {
-            toggleCarPause();
+            if (carAvoidState.isPaused) {
+                startCarGame();
+            } else {
+                toggleCarPause();
+            }
             return;
         }
         if (carAvoidState.isPaused) return;
@@ -1817,6 +1918,7 @@
         gameScreenEl.innerHTML = `<canvas id="ballBounceCanvas"></canvas><div id="ballBounceOverlay" class="overlay"></div>`;
         headerSubtitleEl.textContent = 'Break all the bricks!';
         
+        // Show controls for touch devices
         if (isTouchDevice) {
             mobileControlsEl.classList.remove('hidden');
         }
@@ -1830,7 +1932,7 @@
             ballBounceCanvas.width = containerSize;
             ballBounceCanvas.height = containerSize;
             resetBallBounceGame();
-            if (ballBounceState.isPaused) updateBallBounceOverlay('START', 'Breakout', isTouchDevice ? 'Tap to start!' : 'Press SPACE or tap to start!');
+            if (ballBounceState.isPaused) updateBallBounceOverlay('START', '🎾 Breakout', 'Tap to start!');
         };
 
         resizeObserver = new ResizeObserver(() => resizeFn());
@@ -1846,10 +1948,36 @@
             }
         };
         
-        ballBounceCanvas.addEventListener('click', toggleBallBouncePause);
-        ballBounceCanvas.addEventListener('touchend', (e) => {
+        // Canvas click/touch
+        ballBounceCanvas.addEventListener('click', function(e) {
             e.preventDefault();
-            toggleBallBouncePause();
+            if (ballBounceState.isPaused) {
+                startBallBounceGame();
+            } else {
+                toggleBallBouncePause();
+            }
+        });
+        
+        ballBounceCanvas.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            if (ballBounceState.isPaused) {
+                startBallBounceGame();
+            } else {
+                toggleBallBouncePause();
+            }
+        });
+        
+        // Overlay click/touch
+        ballBounceOverlayEl.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            startBallBounceGame();
+        });
+        
+        ballBounceOverlayEl.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            startBallBounceGame();
         });
         
         // Touch move for paddle
@@ -1860,9 +1988,16 @@
             const rect = ballBounceCanvas.getBoundingClientRect();
             const touchX = touch.clientX - rect.left;
             ballBounceState.paddle.x = touchX - ballBounceState.paddle.width / 2;
-        });
+        }, { passive: false });
         
         gameLoopId = requestAnimationFrame(ballBounceLoop);
+    }
+
+    function startBallBounceGame() {
+        if (ballBounceState.isPaused) {
+            ballBounceState.isPaused = false;
+            ballBounceOverlayEl.classList.remove('active');
+        }
     }
 
     function resetBallBounceGame() {
@@ -1928,7 +2063,7 @@
         if (activeGame !== 'ballBounce') return;
         ballBounceState.isPaused = !ballBounceState.isPaused;
         if (ballBounceState.isPaused) {
-            updateBallBounceOverlay('PAUSED', `Score: ${ballBounceState.score}`, 'Game Paused');
+            updateBallBounceOverlay('PAUSED', `Score: ${ballBounceState.score}`, 'Game Paused - Tap to continue');
         } else {
             ballBounceOverlayEl.classList.remove('active');
         }
@@ -1942,7 +2077,7 @@
         ballBounceOverlayEl.innerHTML = `
             <h2 class="text-2xl md:text-3xl font-extrabold ${colorClass}">${title}</h2>
             <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
-            ${state !== 'PAUSED' ? `<button onclick="startNewBallBounceGame()" class="mt-6 bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold py-3 px-8 rounded-full">${buttonText}</button>` : ''}
+            ${state !== 'PAUSED' ? `<button onclick="startNewBallBounceGame(); event.stopPropagation();" class="mt-6 bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold py-3 px-8 rounded-full">${buttonText}</button>` : ''}
         `;
         ballBounceOverlayEl.classList.add('active');
     }
@@ -1958,7 +2093,11 @@
             e.preventDefault();
         }
         if (e.key === ' ') {
-            toggleBallBouncePause();
+            if (ballBounceState.isPaused) {
+                startBallBounceGame();
+            } else {
+                toggleBallBouncePause();
+            }
             return;
         }
         if (ballBounceState.isPaused) return;
@@ -2181,9 +2320,20 @@
         sudokuState.currentBoard = PRESET_PUZZLE.map(row => [...row]);
         sudokuState.solutionBoard = PRESET_SOLUTION.map(row => [...row]);
         
+        // Add touch/click to overlay
+        sudokuState.overlayEl.addEventListener('click', closeSudokuOverlay);
+        sudokuState.overlayEl.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            closeSudokuOverlay();
+        });
+        
         renderSudokuBoard();
         updateSudokuOverlay('START', '🔢 Sudoku', 'Tap to start playing!');
         sudokuState.overlayEl.classList.add('active');
+    }
+
+    function closeSudokuOverlay() {
+        sudokuState.overlayEl.classList.remove('active');
     }
 
     function renderSudokuBoard() {
@@ -2269,7 +2419,7 @@
         sudokuState.overlayEl.innerHTML = `
             <h2 class="text-2xl md:text-3xl font-extrabold ${colorClass}">${title}</h2>
             <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
-            <button onclick="sudokuState.overlayEl.classList.remove('active')" class="mt-6 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold py-3 px-8 rounded-full">Continue</button>
+            <button onclick="closeSudokuOverlay(); event.stopPropagation();" class="mt-6 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold py-3 px-8 rounded-full">Continue</button>
         `;
     }
 
@@ -2560,11 +2710,11 @@
     };
 
     // ==================== REACTION TEST ====================
-    let reactionState = { startTime: 0, waiting: false };
+    let reactionState = { startTime: 0, waiting: false, timeoutId: null };
 
     function initReactionTestGame() {
         gameScreenEl.innerHTML = `
-            <div id="reactionContainer" class="reaction-container waiting" onclick="handleReactionClick()">
+            <div id="reactionContainer" class="reaction-container waiting">
                 <div class="text-center">
                     <h2 id="reactionTitle" class="text-2xl md:text-3xl font-bold text-white mb-4">⚡ Reaction Test</h2>
                     <p id="reactionMessage" class="text-lg md:text-xl text-white/80">Tap to start!</p>
@@ -2573,10 +2723,19 @@
             </div>
         `;
         headerSubtitleEl.textContent = 'Test your reflexes!';
-        reactionState = { startTime: 0, waiting: false };
+        reactionState = { startTime: 0, waiting: false, timeoutId: null };
+        
+        const container = document.getElementById('reactionContainer');
+        
+        // Add both click and touch events
+        container.addEventListener('click', handleReactionInput);
+        container.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            handleReactionInput();
+        });
     }
 
-    window.handleReactionClick = function() {
+    function handleReactionInput() {
         const container = document.getElementById('reactionContainer');
         const message = document.getElementById('reactionMessage');
         const timeDisplay = document.getElementById('reactionTime');
@@ -2584,16 +2743,16 @@
         if (container.classList.contains('result')) {
             // Reset
             container.className = 'reaction-container waiting';
-            message.textContent = isTouchDevice ? 'Tap when screen turns GREEN!' : 'Click when screen turns GREEN!';
+            message.textContent = 'Wait for green...';
             timeDisplay.textContent = '';
             
             const delay = 2000 + Math.random() * 3000;
             reactionState.waiting = true;
             
-            setTimeout(() => {
+            reactionState.timeoutId = setTimeout(() => {
                 if (reactionState.waiting) {
                     container.className = 'reaction-container ready';
-                    message.textContent = isTouchDevice ? 'TAP NOW!' : 'CLICK NOW!';
+                    message.textContent = 'TAP NOW!';
                     reactionState.startTime = Date.now();
                 }
             }, delay);
@@ -2601,12 +2760,13 @@
             // Record time
             const time = Date.now() - reactionState.startTime;
             container.className = 'reaction-container result';
-            message.textContent = isTouchDevice ? 'Tap to try again' : 'Click to try again';
+            message.textContent = 'Tap to try again';
             timeDisplay.textContent = `${time} ms`;
             reactionState.waiting = false;
         } else if (container.classList.contains('waiting')) {
             if (reactionState.waiting) {
                 // Too early
+                clearTimeout(reactionState.timeoutId);
                 container.className = 'reaction-container result';
                 message.textContent = 'Too early! Tap to retry';
                 timeDisplay.textContent = '❌';
@@ -2618,16 +2778,18 @@
                 const delay = 2000 + Math.random() * 3000;
                 reactionState.waiting = true;
                 
-                setTimeout(() => {
+                reactionState.timeoutId = setTimeout(() => {
                     if (reactionState.waiting) {
                         container.className = 'reaction-container ready';
-                        message.textContent = isTouchDevice ? 'TAP NOW!' : 'CLICK NOW!';
+                        message.textContent = 'TAP NOW!';
                         reactionState.startTime = Date.now();
                     }
                 }, delay);
             }
         }
-    };
+    }
+
+    window.handleReactionClick = handleReactionInput;
 
     // ==================== 2048 GAME ====================
     let game2048State = {
@@ -2676,6 +2838,22 @@
         // Touch support with improved swipe detection
         let touchStartX, touchStartY, touchEndX, touchEndY;
         const gridEl = document.getElementById('grid2048');
+        const container = gameScreenEl;
+        
+        function handleSwipe(startX, startY, endX, endY) {
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+            
+            if (Math.max(absDx, absDy) > 30) {
+                if (absDx > absDy) {
+                    move2048(dx > 0 ? 'right' : 'left');
+                } else {
+                    move2048(dy > 0 ? 'down' : 'up');
+                }
+            }
+        }
         
         gridEl.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
@@ -2689,23 +2867,10 @@
         gridEl.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].clientX;
             touchEndY = e.changedTouches[0].clientY;
-            
-            const dx = touchEndX - touchStartX;
-            const dy = touchEndY - touchStartY;
-            const absDx = Math.abs(dx);
-            const absDy = Math.abs(dy);
-            
-            if (Math.max(absDx, absDy) > 30) {
-                if (absDx > absDy) {
-                    move2048(dx > 0 ? 'right' : 'left');
-                } else {
-                    move2048(dy > 0 ? 'down' : 'up');
-                }
-            }
+            handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
         }, { passive: true });
         
-        // Also add swipe to the container for better mobile experience
-        const container = gameScreenEl;
+        // Also handle swipe on container
         container.addEventListener('touchstart', e => {
             if (activeGame !== 'game2048') return;
             touchStartX = e.touches[0].clientX;
@@ -2716,19 +2881,7 @@
             if (activeGame !== 'game2048') return;
             touchEndX = e.changedTouches[0].clientX;
             touchEndY = e.changedTouches[0].clientY;
-            
-            const dx = touchEndX - touchStartX;
-            const dy = touchEndY - touchStartY;
-            const absDx = Math.abs(dx);
-            const absDy = Math.abs(dy);
-            
-            if (Math.max(absDx, absDy) > 50) {
-                if (absDx > absDy) {
-                    move2048(dx > 0 ? 'right' : 'left');
-                } else {
-                    move2048(dy > 0 ? 'down' : 'up');
-                }
-            }
+            handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
         }, { passive: true });
     }
 
@@ -2883,7 +3036,7 @@
 
     function initFlappyBirdGame() {
         gameScreenEl.innerHTML = `<canvas id="flappyCanvas"></canvas><div id="flappyOverlay" class="overlay"></div>`;
-        headerSubtitleEl.textContent = isTouchDevice ? 'Tap to fly!' : 'Tap or press SPACE to fly!';
+        headerSubtitleEl.textContent = 'Tap to fly!';
         
         if (isTouchDevice) {
             tapHintEl.classList.remove('hidden');
@@ -2898,7 +3051,7 @@
             flappyCanvas.width = containerSize;
             flappyCanvas.height = containerSize;
             resetFlappy();
-            updateFlappyOverlay('START', '🐦 Flappy Clone', isTouchDevice ? 'Tap to start!' : 'Press SPACE or tap to start!');
+            updateFlappyOverlay('START', '🐦 Flappy Clone', 'Tap to start!');
         };
 
         resizeObserver = new ResizeObserver(() => resizeFn());
@@ -2908,32 +3061,44 @@
         document.onkeydown = (e) => {
             if (e.key === ' ') {
                 e.preventDefault();
-                if (flappyState.isPaused) {
-                    flappyState.isPaused = false;
-                    flappyOverlayEl.classList.remove('active');
-                }
-                flappyJump();
+                handleFlappyInput();
             }
         };
         
-        flappyCanvas.addEventListener('click', () => {
-            if (flappyState.isPaused) {
-                flappyState.isPaused = false;
-                flappyOverlayEl.classList.remove('active');
-            }
-            flappyJump();
+        // Canvas click
+        flappyCanvas.addEventListener('click', function(e) {
+            e.preventDefault();
+            handleFlappyInput();
         });
         
-        flappyCanvas.addEventListener('touchend', (e) => {
+        // Canvas touch
+        flappyCanvas.addEventListener('touchend', function(e) {
             e.preventDefault();
-            if (flappyState.isPaused) {
-                flappyState.isPaused = false;
-                flappyOverlayEl.classList.remove('active');
-            }
-            flappyJump();
+            handleFlappyInput();
+        });
+        
+        // Overlay click/touch
+        flappyOverlayEl.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleFlappyInput();
+        });
+        
+        flappyOverlayEl.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleFlappyInput();
         });
         
         gameLoopId = requestAnimationFrame(flappyLoop);
+    }
+
+    function handleFlappyInput() {
+        if (flappyState.isPaused) {
+            flappyState.isPaused = false;
+            flappyOverlayEl.classList.remove('active');
+        }
+        flappyJump();
     }
 
     function resetFlappy() {
@@ -2953,7 +3118,7 @@
         flappyOverlayEl.innerHTML = `
             <h2 class="text-2xl md:text-3xl font-extrabold ${colorClass}">${title}</h2>
             <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
-            ${state === 'GAMEOVER' ? `<button onclick="restartFlappy()" class="mt-6 bg-gradient-to-r from-sky-500 to-blue-500 text-white font-bold py-3 px-8 rounded-full">🔄 Try Again</button>` : ''}
+            ${state === 'GAMEOVER' ? `<button onclick="restartFlappy(); event.stopPropagation();" class="mt-6 bg-gradient-to-r from-sky-500 to-blue-500 text-white font-bold py-3 px-8 rounded-full">🔄 Try Again</button>` : ''}
         `;
         flappyOverlayEl.classList.add('active');
     }
