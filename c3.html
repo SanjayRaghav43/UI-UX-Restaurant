@@ -227,6 +227,246 @@
             transform: translate(-50%, -50%) scale(1.05);
         }
         
+        /* Drag & Drop Gesture Indicator */
+        #gesture-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        #gesture-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .gesture-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+        
+        /* Gesture food item */
+        .gesture-food {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ff9900, #ffcc00);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.5);
+            animation: gestureFood 3s ease-in-out infinite;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Gesture hand */
+        .gesture-hand {
+            position: absolute;
+            top: 15%;
+            left: 18%;
+            font-size: 48px;
+            animation: gestureHand 3s ease-in-out infinite;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+            transform-origin: center center;
+        }
+        
+        /* Gesture plate target */
+        .gesture-plate {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 140px;
+            border: 4px dashed rgba(255, 153, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: gesturePlate 3s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(255, 153, 0, 0.15) 0%, transparent 70%);
+        }
+        
+        .gesture-plate-icon {
+            font-size: 50px;
+            opacity: 0.8;
+        }
+        
+        /* Gesture dotted path */
+        .gesture-path {
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 180px;
+            height: 180px;
+            pointer-events: none;
+        }
+        
+        .gesture-path svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        
+        .gesture-path path {
+            fill: none;
+            stroke: rgba(255, 153, 0, 0.5);
+            stroke-width: 3;
+            stroke-dasharray: 10, 10;
+            stroke-linecap: round;
+            animation: dashFlow 1s linear infinite;
+        }
+        
+        /* Gesture text */
+        .gesture-text {
+            position: absolute;
+            bottom: -15%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 100%;
+        }
+        
+        .gesture-text h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff9900;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(255, 153, 0, 0.3);
+        }
+        
+        .gesture-text p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .gesture-dismiss {
+            position: absolute;
+            bottom: -30%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #ff9900, #cc7700);
+            border: none;
+            border-radius: 30px;
+            color: #000;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.4);
+        }
+        
+        .gesture-dismiss:hover {
+            transform: translateX(-50%) translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 153, 0, 0.5);
+        }
+        
+        /* Pulse ring on plate */
+        .gesture-pulse {
+            position: absolute;
+            inset: -20px;
+            border: 3px solid rgba(255, 153, 0, 0.4);
+            border-radius: 50%;
+            animation: gesturePulse 2s ease-out infinite;
+        }
+        
+        /* Keyframe animations */
+        @keyframes gestureFood {
+            0%, 100% {
+                top: 10%;
+                left: 10%;
+                transform: scale(1);
+            }
+            30% {
+                transform: scale(1.1);
+            }
+            50% {
+                top: 45%;
+                left: 45%;
+                transform: scale(0.9);
+            }
+            70% {
+                top: 45%;
+                left: 45%;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes gestureHand {
+            0%, 100% {
+                top: 15%;
+                left: 18%;
+                transform: rotate(0deg);
+            }
+            20% {
+                transform: rotate(-10deg);
+            }
+            50% {
+                top: 50%;
+                left: 53%;
+                transform: rotate(5deg);
+            }
+            60% {
+                transform: rotate(-5deg);
+            }
+            70% {
+                top: 50%;
+                left: 53%;
+            }
+        }
+        
+        @keyframes gesturePlate {
+            0%, 40% {
+                border-color: rgba(255, 153, 0, 0.4);
+                box-shadow: 0 0 0 rgba(255, 153, 0, 0);
+            }
+            50%, 70% {
+                border-color: #ff9900;
+                box-shadow: 0 0 40px rgba(255, 153, 0, 0.5), inset 0 0 30px rgba(255, 153, 0, 0.2);
+            }
+            100% {
+                border-color: rgba(255, 153, 0, 0.4);
+                box-shadow: 0 0 0 rgba(255, 153, 0, 0);
+            }
+        }
+        
+        @keyframes gesturePulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes dashFlow {
+            0% {
+                stroke-dashoffset: 0;
+            }
+            100% {
+                stroke-dashoffset: -20;
+            }
+        }
+        
         /* Loader */
         #loader { 
             position: fixed; 
@@ -464,6 +704,41 @@
         <!-- Plate Drop Zone -->
         <div class="plate-zone w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px]" id="plate-zone">
             <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 text-primary/60 text-[10px] md:text-xs tracking-[0.2em] whitespace-nowrap font-medium bg-black/50 px-4 py-1.5 rounded-full border border-primary/20">✨ DROP TO ADD ✨</div>
+        </div>
+
+        <!-- Drag & Drop Gesture Tutorial Overlay -->
+        <div id="gesture-overlay">
+            <div class="gesture-container">
+                <!-- Food item being dragged -->
+                <div class="gesture-food">🍛</div>
+                
+                <!-- Hand cursor -->
+                <div class="gesture-hand">👆</div>
+                
+                <!-- Dotted path -->
+                <div class="gesture-path">
+                    <svg viewBox="0 0 200 200">
+                        <path d="M 10,10 Q 100,50 100,180" />
+                    </svg>
+                </div>
+                
+                <!-- Target plate -->
+                <div class="gesture-plate">
+                    <div class="gesture-pulse"></div>
+                    <span class="gesture-plate-icon">🍽️</span>
+                </div>
+                
+                <!-- Instructions -->
+                <div class="gesture-text">
+                    <h3>Drag & Drop</h3>
+                    <p>Drag food items onto the plate to build your thali</p>
+                </div>
+                
+                <!-- Dismiss button -->
+                <button class="gesture-dismiss" onclick="dismissGestureTutorial()">
+                    Got it! Let's Start →
+                </button>
+            </div>
         </div>
 
         <!-- Plate Summary Panel - Enhanced Colors -->
@@ -2033,6 +2308,95 @@
             cart = SharedCart.getCart();
             app.updateCartUI();
         });
+        
+        // ========== DRAG & DROP GESTURE TUTORIAL ==========
+        const GESTURE_STORAGE_KEY = 'gourmetverse_gesture_seen';
+        
+        function showGestureTutorial() {
+            const overlay = document.getElementById('gesture-overlay');
+            if (overlay) {
+                overlay.classList.add('visible');
+            }
+        }
+        
+        function dismissGestureTutorial() {
+            const overlay = document.getElementById('gesture-overlay');
+            if (overlay) {
+                overlay.classList.remove('visible');
+                // Mark as seen in localStorage
+                localStorage.setItem(GESTURE_STORAGE_KEY, 'true');
+            }
+        }
+        
+        function checkAndShowGestureTutorial() {
+            // Check if user has already seen the tutorial
+            const hasSeenGesture = localStorage.getItem(GESTURE_STORAGE_KEY);
+            
+            if (!hasSeenGesture) {
+                // Wait for loader to finish, then show tutorial
+                setTimeout(() => {
+                    showGestureTutorial();
+                    
+                    // Also dismiss on clicking anywhere on overlay (except button)
+                    const overlay = document.getElementById('gesture-overlay');
+                    if (overlay) {
+                        overlay.addEventListener('click', function(e) {
+                            if (e.target === overlay) {
+                                dismissGestureTutorial();
+                            }
+                        });
+                    }
+                    
+                    // Auto-dismiss after 10 seconds if user doesn't interact
+                    setTimeout(() => {
+                        const stillVisible = document.getElementById('gesture-overlay')?.classList.contains('visible');
+                        if (stillVisible) {
+                            dismissGestureTutorial();
+                        }
+                    }, 10000);
+                    
+                }, 2000); // Wait 2 seconds after page load
+            }
+        }
+        
+        // Initialize gesture tutorial check
+        checkAndShowGestureTutorial();
+
+        function showGestureTutorial() {
+    const overlay = document.getElementById("gesture-overlay");
+    overlay.classList.add("visible");
+}
+
+function dismissGestureTutorial() {
+    const overlay = document.getElementById("gesture-overlay");
+    overlay.classList.remove("visible");
+}
+
+
+window.addEventListener("load", () => {
+    showGestureTutorial();
+});
+
+// =====================
+// ALWAYS SHOW GESTURE ON PAGE LOAD
+// =====================
+
+function showGestureTutorial() {
+    const overlay = document.getElementById("gesture-overlay");
+    if (overlay) overlay.classList.add("visible");
+}
+
+function dismissGestureTutorial() {
+    const overlay = document.getElementById("gesture-overlay");
+    if (overlay) overlay.classList.remove("visible");
+}
+
+// Force show when user opens page
+window.addEventListener("load", () => {
+    showGestureTutorial();
+});
+
+
     </script>
 
 </body>
