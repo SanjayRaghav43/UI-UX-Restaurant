@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Mega Game Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -11,6 +11,7 @@
         
         * {
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -23,6 +24,7 @@
             padding: 0;
             margin: 0;
             overflow: hidden;
+            touch-action: manipulation;
         }
 
         /* ==================== WELCOME SCREEN STYLES ==================== */
@@ -238,6 +240,41 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Exit Button */
+        .exit-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .exit-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+        }
+
+        @media (max-width: 640px) {
+            .exit-button {
+                padding: 6px 12px;
+                font-size: 12px;
+                top: 5px;
+                right: 5px;
+            }
+        }
+
         /* Game canvas container */
         .game-canvas-container {
             width: 100%;
@@ -258,6 +295,14 @@
                 0 0 40px rgba(255, 0, 255, 0.3),
                 0 0 80px rgba(0, 255, 255, 0.2),
                 inset 0 0 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 640px) {
+            .game-canvas-container {
+                max-width: 100%;
+                border-radius: 16px;
+                aspect-ratio: 1 / 1;
+            }
         }
 
         .game-canvas-container::before {
@@ -367,15 +412,22 @@
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(4, 1fr);
-            gap: 8px;
-            padding: 15px;
+            gap: 6px;
+            padding: 10px;
             box-sizing: border-box;
         }
 
         @media (max-width: 500px) {
             .memory-match-container {
-                gap: 5px;
-                padding: 10px;
+                gap: 4px;
+                padding: 6px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .memory-match-container {
+                gap: 3px;
+                padding: 4px;
             }
         }
 
@@ -383,6 +435,8 @@
             aspect-ratio: 1;
             perspective: 1000px;
             cursor: pointer;
+            min-width: 0;
+            min-height: 0;
         }
 
         .memory-card-inner {
@@ -392,7 +446,13 @@
             text-align: center;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             transform-style: preserve-3d;
-            border-radius: 12px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 400px) {
+            .memory-card-inner {
+                border-radius: 6px;
+            }
         }
 
         .memory-card.flipped .memory-card-inner {
@@ -405,18 +465,25 @@
             height: 100%;
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-size: clamp(1rem, 4vw, 2rem);
+        }
+
+        @media (max-width: 400px) {
+            .memory-card-front, .memory-card-back {
+                border-radius: 6px;
+                font-size: clamp(0.8rem, 3.5vw, 1.5rem);
+            }
         }
 
         .memory-card-back {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
             font-family: 'Press Start 2P', cursive;
-            font-size: clamp(1.5rem, 6vw, 3rem);
+            font-size: clamp(0.8rem, 4vw, 2rem);
             box-shadow: 
                 0 4px 15px rgba(79, 70, 229, 0.4),
                 inset 0 1px 0 rgba(255,255,255,0.2);
@@ -514,7 +581,7 @@
             width: 100%;
             height: 100%;
             text-align: center;
-            font-size: clamp(0.8rem, 3vw, 1.5rem);
+            font-size: clamp(0.6rem, 2.5vw, 1.5rem);
             font-weight: bold;
             color: #00ffff;
             background-color: transparent;
@@ -569,6 +636,14 @@
             width: 100%;
             max-width: 350px;
             aspect-ratio: 1;
+            touch-action: none;
+        }
+
+        @media (max-width: 400px) {
+            .grid-2048 {
+                gap: 6px;
+                padding: 6px;
+            }
         }
 
         .tile-2048 {
@@ -576,7 +651,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: clamp(1rem, 5vw, 2rem);
+            font-size: clamp(0.9rem, 4vw, 2rem);
             font-weight: bold;
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.1);
@@ -725,6 +800,95 @@
             pointer-events: auto;
         }
 
+        /* ==================== MOBILE CONTROLS STYLES ==================== */
+        .touch-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .touch-btn {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .touch-btn:active {
+            transform: scale(0.9);
+        }
+
+        .touch-btn.up { background: linear-gradient(135deg, #3b82f6, #1d4ed8); grid-column: 2; }
+        .touch-btn.left { background: linear-gradient(135deg, #8b5cf6, #6d28d9); grid-column: 1; grid-row: 2; }
+        .touch-btn.center { background: linear-gradient(135deg, #10b981, #059669); grid-column: 2; grid-row: 2; }
+        .touch-btn.right { background: linear-gradient(135deg, #8b5cf6, #6d28d9); grid-column: 3; grid-row: 2; }
+        .touch-btn.down { background: linear-gradient(135deg, #3b82f6, #1d4ed8); grid-column: 2; grid-row: 3; }
+
+        /* Swipe indicator for touch games */
+        .swipe-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .swipe-arrows {
+            display: flex;
+            gap: 20px;
+            font-size: 1.5rem;
+        }
+
+        /* Controls info panel */
+        .controls-info {
+            padding: 12px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .controls-info h4 {
+            color: #a78bfa;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .controls-info p {
+            color: #9ca3af;
+            font-size: 0.8rem;
+            margin: 4px 0;
+        }
+
+        .device-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: white;
+            margin-left: 8px;
+        }
+
         /* Scrollbar styling */
         ::-webkit-scrollbar {
             width: 8px;
@@ -742,6 +906,12 @@
     </style>
 </head>
 <body>
+
+    <!-- Exit Button (always visible) -->
+    <a href="index.html" class="exit-button" id="exitButton" style="display: none;">
+        <span>✕</span>
+        <span>Exit</span>
+    </a>
 
     <!-- ==================== WELCOME OVERLAY ==================== -->
     <div id="welcomeOverlay">
@@ -806,10 +976,12 @@
                 <div id="gameList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-2 md:gap-3 max-h-[400px] lg:max-h-[600px] overflow-y-auto pr-2">
                     <!-- Game buttons render here -->
                 </div>
-                <div id="controls" class="mt-4 p-3 bg-black/30 rounded-xl text-xs text-gray-400">
-                    <p class="font-bold text-purple-300 mb-1">🎮 Controls:</p>
-                    <p>Arrow Keys / W/A/S/D for movement</p>
-                    <p>Spacebar to start/pause</p>
+                <div id="controls" class="controls-info mt-4">
+                    <h4><span>🎮</span> Controls <span id="deviceBadge" class="device-badge">Desktop</span></h4>
+                    <div id="controlsText">
+                        <p>⌨️ Arrow Keys / W/A/S/D for movement</p>
+                        <p>⏸️ Spacebar to start/pause</p>
+                    </div>
                 </div>
             </div>
 
@@ -826,11 +998,44 @@
                 </div>
                 
                 <!-- Controls Area -->
-                <div id="gameControlsArea" class="mt-4 w-full max-w-md flex justify-center">
-                    <div id="mobileControls" class="hidden w-full flex justify-around gap-2">
-                        <button class="game-button flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-xl text-lg font-bold" onclick="handleMobileMove('LEFT')">◀ Left</button>
-                        <button class="game-button flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl text-lg font-bold" onclick="handleMobileMove('RIGHT')">Right ▶</button>
+                <div id="gameControlsArea" class="mt-4 w-full max-w-md flex flex-col items-center gap-3">
+                    <!-- Mobile D-Pad Controls -->
+                    <div id="mobileDPad" class="hidden touch-controls">
+                        <div></div>
+                        <button class="touch-btn up" ontouchstart="handleTouchControl('UP')" onmousedown="handleTouchControl('UP')">▲</button>
+                        <div></div>
+                        <button class="touch-btn left" ontouchstart="handleTouchControl('LEFT')" onmousedown="handleTouchControl('LEFT')">◀</button>
+                        <button class="touch-btn center" ontouchstart="handleTouchControl('ACTION')" onmousedown="handleTouchControl('ACTION')">●</button>
+                        <button class="touch-btn right" ontouchstart="handleTouchControl('RIGHT')" onmousedown="handleTouchControl('RIGHT')">▶</button>
+                        <div></div>
+                        <button class="touch-btn down" ontouchstart="handleTouchControl('DOWN')" onmousedown="handleTouchControl('DOWN')">▼</button>
+                        <div></div>
                     </div>
+                    
+                    <!-- Simple Left/Right Controls -->
+                    <div id="mobileControls" class="hidden w-full flex justify-around gap-2">
+                        <button class="game-button flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-xl text-lg font-bold" ontouchstart="handleMobileMove('LEFT')" onmousedown="handleMobileMove('LEFT')">◀ Left</button>
+                        <button class="game-button flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl text-lg font-bold" ontouchstart="handleMobileMove('RIGHT')" onmousedown="handleMobileMove('RIGHT')">Right ▶</button>
+                    </div>
+                    
+                    <!-- Swipe Hint -->
+                    <div id="swipeHint" class="hidden swipe-hint">
+                        <div class="swipe-arrows">
+                            <span>⬅️</span>
+                            <span>⬆️</span>
+                            <span>⬇️</span>
+                            <span>➡️</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Swipe to move tiles</p>
+                    </div>
+                    
+                    <!-- Tap Hint for Flappy -->
+                    <div id="tapHint" class="hidden swipe-hint">
+                        <span class="text-3xl">👆</span>
+                        <p class="text-gray-400 text-sm">Tap anywhere to fly!</p>
+                    </div>
+                    
+                    <!-- Game Specific Controls -->
                     <div id="sudokuControls" class="hidden w-full flex justify-center gap-3">
                         <button onclick="checkSudokuSolution()" class="game-button bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2 px-6 rounded-xl font-bold">✓ Check</button>
                         <button onclick="resetSudokuGame()" class="game-button bg-gradient-to-r from-red-500 to-pink-600 text-white py-2 px-6 rounded-xl font-bold">↻ Reset</button>
@@ -844,6 +1049,87 @@
     </div>
 
 <script>
+    // ==================== DEVICE DETECTION ====================
+    function getDeviceType() {
+        const ua = navigator.userAgent;
+        if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+            return 'tablet';
+        }
+        if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+            return 'mobile';
+        }
+        return 'desktop';
+    }
+
+    const deviceType = getDeviceType();
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // Update controls display based on device
+    function updateControlsDisplay(gameId = null) {
+        const deviceBadge = document.getElementById('deviceBadge');
+        const controlsText = document.getElementById('controlsText');
+        
+        let deviceIcon = '🖥️';
+        let deviceName = 'Desktop';
+        
+        if (deviceType === 'mobile') {
+            deviceIcon = '📱';
+            deviceName = 'Mobile';
+        } else if (deviceType === 'tablet') {
+            deviceIcon = '📲';
+            deviceName = 'Tablet';
+        }
+        
+        deviceBadge.innerHTML = `${deviceIcon} ${deviceName}`;
+        
+        // Game-specific controls
+        const gameControls = {
+            'memoryMatch': {
+                desktop: '<p>🖱️ Click cards to flip them</p><p>🧠 Match all pairs to win!</p>',
+                mobile: '<p>👆 Tap cards to flip them</p><p>🧠 Match all pairs to win!</p>',
+                tablet: '<p>👆 Tap cards to flip them</p><p>🧠 Match all pairs to win!</p>'
+            },
+            'carAvoid': {
+                desktop: '<p>⌨️ ← → or A/D to switch lanes</p><p>⏸️ Spacebar or click to pause</p>',
+                mobile: '<p>👆 Use buttons below to move</p><p>👆 Tap game to pause</p>',
+                tablet: '<p>👆 Use buttons below to move</p><p>👆 Tap game to pause</p>'
+            },
+            'ballBounce': {
+                desktop: '<p>⌨️ ← → or A/D to move paddle</p><p>⏸️ Spacebar or click to pause</p>',
+                mobile: '<p>👆 Use buttons below to move</p><p>👆 Tap game to pause</p>',
+                tablet: '<p>👆 Use buttons below to move</p><p>👆 Tap game to pause</p>'
+            },
+            'game2048': {
+                desktop: '<p>⌨️ Arrow keys to slide tiles</p><p>🎯 Combine to reach 2048!</p>',
+                mobile: '<p>👆 Swipe to slide tiles</p><p>🎯 Combine to reach 2048!</p>',
+                tablet: '<p>👆 Swipe to slide tiles</p><p>🎯 Combine to reach 2048!</p>'
+            },
+            'flappyBird': {
+                desktop: '<p>⌨️ Spacebar or click to fly</p><p>🐦 Avoid the pipes!</p>',
+                mobile: '<p>👆 Tap anywhere to fly</p><p>🐦 Avoid the pipes!</p>',
+                tablet: '<p>👆 Tap anywhere to fly</p><p>🐦 Avoid the pipes!</p>'
+            },
+            'simonSays': {
+                desktop: '<p>🖱️ Click colored buttons</p><p>🔴 Repeat the pattern!</p>',
+                mobile: '<p>👆 Tap colored buttons</p><p>🔴 Repeat the pattern!</p>',
+                tablet: '<p>👆 Tap colored buttons</p><p>🔴 Repeat the pattern!</p>'
+            },
+            'reactionTest': {
+                desktop: '<p>🖱️ Click when green</p><p>⚡ Test your reflexes!</p>',
+                mobile: '<p>👆 Tap when green</p><p>⚡ Test your reflexes!</p>',
+                tablet: '<p>👆 Tap when green</p><p>⚡ Test your reflexes!</p>'
+            },
+            'default': {
+                desktop: '<p>⌨️ Arrow Keys / W/A/S/D for movement</p><p>⏸️ Spacebar to start/pause</p>',
+                mobile: '<p>👆 Tap to interact</p><p>👆 Use on-screen controls</p>',
+                tablet: '<p>👆 Tap to interact</p><p>👆 Use on-screen controls</p>'
+            }
+        };
+        
+        const controls = gameControls[gameId] || gameControls['default'];
+        controlsText.innerHTML = controls[deviceType];
+    }
+
     // ==================== PARTICLE SYSTEM FOR WELCOME SCREEN ====================
     const particleCanvas = document.getElementById('particleCanvas');
     const pCtx = particleCanvas.getContext('2d');
@@ -933,6 +1219,7 @@
     // ==================== WELCOME SCREEN TRANSITION ====================
     const welcomeOverlay = document.getElementById('welcomeOverlay');
     const appContainer = document.getElementById('appContainer');
+    const exitButton = document.getElementById('exitButton');
 
     document.getElementById('enterHubButton').addEventListener('click', hideWelcomeScene);
 
@@ -943,6 +1230,7 @@
         setTimeout(() => {
             welcomeOverlay.style.display = 'none';
             appContainer.style.display = 'block';
+            exitButton.style.display = 'flex';
             document.body.style.padding = '15px';
             document.body.style.overflow = 'auto';
             initMainApp();
@@ -980,6 +1268,9 @@
     const headerTitleEl = document.getElementById('headerTitle');
     const headerSubtitleEl = document.getElementById('headerSubtitle');
     const mobileControlsEl = document.getElementById('mobileControls');
+    const mobileDPadEl = document.getElementById('mobileDPad');
+    const swipeHintEl = document.getElementById('swipeHint');
+    const tapHintEl = document.getElementById('tapHint');
     const sudokuControlsEl = document.getElementById('sudokuControls');
     const game2048ControlsEl = document.getElementById('game2048Controls');
 
@@ -993,6 +1284,18 @@
                 </div>
             </div>
         `).join('');
+        
+        updateControlsDisplay();
+    }
+
+    // ==================== HIDE ALL MOBILE CONTROLS ====================
+    function hideAllMobileControls() {
+        mobileControlsEl.classList.add('hidden');
+        mobileDPadEl.classList.add('hidden');
+        swipeHintEl.classList.add('hidden');
+        tapHintEl.classList.add('hidden');
+        sudokuControlsEl.classList.add('hidden');
+        game2048ControlsEl.classList.add('hidden');
     }
 
     // ==================== STOP ACTIVE GAME ====================
@@ -1015,11 +1318,12 @@
         if (typeof simonState !== 'undefined' && simonState.timeout) {
             clearTimeout(simonState.timeout);
         }
+        if (typeof whackMoleInterval !== 'undefined') {
+            clearInterval(whackMoleInterval);
+        }
         
         // Hide all control panels
-        mobileControlsEl.classList.add('hidden');
-        sudokuControlsEl.classList.add('hidden');
-        game2048ControlsEl.classList.add('hidden');
+        hideAllMobileControls();
         
         // Remove active state from game cards
         document.querySelectorAll('.game-card').forEach(card => card.classList.remove('active'));
@@ -1039,6 +1343,7 @@
         placeholderScreenEl.style.pointerEvents = 'none';
         
         headerTitleEl.textContent = gameInfo.name;
+        updateControlsDisplay(gameId);
         
         // Set active state on card
         document.querySelector(`[data-game="${gameId}"]`)?.classList.add('active');
@@ -1087,6 +1392,13 @@
         }
     }
 
+    // ==================== TOUCH CONTROL HANDLER ====================
+    function handleTouchControl(direction) {
+        if (activeGame === 'game2048') {
+            move2048(direction.toLowerCase());
+        }
+    }
+
     // ==================== MOBILE CONTROLS HANDLER ====================
     function handleMobileMove(direction) {
         if (activeGame === 'carAvoid') {
@@ -1125,7 +1437,7 @@
         gameScreenEl.innerHTML = `
             <div id="memoryMatchContainer" class="memory-match-container"></div>
             <div id="memoryMatchOverlay" class="overlay"></div>
-            <div id="memoryMatchScoreboard" class="absolute top-2 left-2 right-2 text-white text-sm font-bold z-10 p-2 rounded-lg bg-black/50 backdrop-blur text-center"></div>
+            <div id="memoryMatchScoreboard" class="absolute top-2 left-2 right-2 text-white text-xs sm:text-sm font-bold z-10 p-2 rounded-lg bg-black/50 backdrop-blur text-center"></div>
         `;
         headerSubtitleEl.textContent = 'Match all the pairs!';
         
@@ -1134,7 +1446,7 @@
         memoryMatchState.scoreboardEl = document.getElementById('memoryMatchScoreboard');
         
         resetMemoryMatchGame();
-        updateMemoryOverlay('START', '🧩 Memory Match', 'Click to start!');
+        updateMemoryOverlay('START', '🧩 Memory Match', 'Tap to start!');
     }
 
     function resetMemoryMatchGame() {
@@ -1254,8 +1566,8 @@
         let colorClass = state === 'WIN' ? 'text-yellow-400' : 'text-purple-400';
         
         memoryMatchState.overlayEl.innerHTML = `
-            <h2 class="text-3xl md:text-4xl font-extrabold ${colorClass}">${title}</h2>
-            <p class="mt-4 text-lg text-gray-300">${message}</p>
+            <h2 class="text-2xl md:text-4xl font-extrabold ${colorClass}">${title}</h2>
+            <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
             <button onclick="startNewMemoryGame()" class="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105">
                 ${state === 'WIN' ? '🎉 Play Again' : '▶ Start Game'}
             </button>
@@ -1298,15 +1610,18 @@
 
     function initCarAvoidGame() {
         gameScreenEl.innerHTML = `<canvas id="carAvoidCanvas"></canvas><div id="carAvoidOverlay" class="overlay"></div>`;
-        headerSubtitleEl.textContent = 'Use Left/Right to switch lanes!';
-        mobileControlsEl.classList.remove('hidden');
+        headerSubtitleEl.textContent = isTouchDevice ? 'Use buttons to switch lanes!' : 'Use Left/Right to switch lanes!';
+        
+        if (isTouchDevice) {
+            mobileControlsEl.classList.remove('hidden');
+        }
         
         carCanvas = document.getElementById('carAvoidCanvas');
         carCtx = carCanvas.getContext('2d');
         carOverlayEl = document.getElementById('carAvoidOverlay');
 
         const resizeFn = () => {
-            const containerSize = carCanvas.parentElement.offsetWidth;
+            const containerSize = Math.min(carCanvas.parentElement.offsetWidth, carCanvas.parentElement.offsetHeight);
             carCanvas.width = containerSize;
             carCanvas.height = containerSize;
             carAvoidState.laneWidth = carCanvas.width / carAvoidState.laneCount;
@@ -1322,6 +1637,10 @@
         resetCarAvoidGame();
         document.onkeydown = carHandleKeyDown;
         carCanvas.addEventListener('click', toggleCarPause);
+        carCanvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            toggleCarPause();
+        });
         gameLoopId = requestAnimationFrame(carLoop);
     }
 
@@ -1333,7 +1652,7 @@
         carAvoidState.lastObstacleTime = 0;
         carAvoidState.obstacleInterval = 1000;
         carAvoidState.isPaused = true;
-        updateCarOverlay('START', 'Score: 0', 'Press SPACE or tap to start!');
+        updateCarOverlay('START', 'Score: 0', isTouchDevice ? 'Tap to start!' : 'Press SPACE or tap to start!');
     }
 
     function toggleCarPause() {
@@ -1350,8 +1669,8 @@
         if (!carOverlayEl) return;
         let colorClass = state === 'GAMEOVER' ? 'text-red-400' : 'text-cyan-400';
         carOverlayEl.innerHTML = `
-            <h2 class="text-3xl font-extrabold ${colorClass}">${title}</h2>
-            <p class="mt-4 text-lg text-gray-300">${message}</p>
+            <h2 class="text-2xl md:text-3xl font-extrabold ${colorClass}">${title}</h2>
+            <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
             ${state === 'GAMEOVER' ? `<button onclick="startNewCarGame()" class="mt-6 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 px-8 rounded-full">🔄 Try Again</button>` : ''}
         `;
         carOverlayEl.classList.add('active');
@@ -1497,18 +1816,21 @@
     function initBallBounceGame() {
         gameScreenEl.innerHTML = `<canvas id="ballBounceCanvas"></canvas><div id="ballBounceOverlay" class="overlay"></div>`;
         headerSubtitleEl.textContent = 'Break all the bricks!';
-        mobileControlsEl.classList.remove('hidden');
+        
+        if (isTouchDevice) {
+            mobileControlsEl.classList.remove('hidden');
+        }
         
         ballBounceCanvas = document.getElementById('ballBounceCanvas');
         ballBounceCtx = ballBounceCanvas.getContext('2d');
         ballBounceOverlayEl = document.getElementById('ballBounceOverlay');
 
         const resizeFn = () => {
-            const containerSize = ballBounceCanvas.parentElement.offsetWidth;
+            const containerSize = Math.min(ballBounceCanvas.parentElement.offsetWidth, ballBounceCanvas.parentElement.offsetHeight);
             ballBounceCanvas.width = containerSize;
             ballBounceCanvas.height = containerSize;
             resetBallBounceGame();
-            if (ballBounceState.isPaused) updateBallBounceOverlay('START', 'Breakout', 'Press SPACE or tap to start!');
+            if (ballBounceState.isPaused) updateBallBounceOverlay('START', 'Breakout', isTouchDevice ? 'Tap to start!' : 'Press SPACE or tap to start!');
         };
 
         resizeObserver = new ResizeObserver(() => resizeFn());
@@ -1525,6 +1847,21 @@
         };
         
         ballBounceCanvas.addEventListener('click', toggleBallBouncePause);
+        ballBounceCanvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            toggleBallBouncePause();
+        });
+        
+        // Touch move for paddle
+        ballBounceCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (ballBounceState.isPaused) return;
+            const touch = e.touches[0];
+            const rect = ballBounceCanvas.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            ballBounceState.paddle.x = touchX - ballBounceState.paddle.width / 2;
+        });
+        
         gameLoopId = requestAnimationFrame(ballBounceLoop);
     }
 
@@ -1599,12 +1936,12 @@
 
     function updateBallBounceOverlay(state, title, message) {
         if (!ballBounceOverlayEl) return;
-        let colorClass = state === 'WIN' ? 'text-yellow-400' : state === 'GAMEOVER' ? 'text-red-400' : 'text-orange-400';
-        let buttonText = state === 'GAMEOVER' ? 'Play Again' : 'New Game';
+        let colorClass = state === 'GAMEOVER' ? 'text-red-400' : state === 'WIN' ? 'text-yellow-400' : 'text-orange-400';
+        let buttonText = state === 'WIN' || state === 'GAMEOVER' ? '🔄 Play Again' : '▶ Start';
         
         ballBounceOverlayEl.innerHTML = `
-            <h2 class="text-3xl font-extrabold ${colorClass}">${title}</h2>
-            <p class="mt-4 text-lg text-gray-300">${message}</p>
+            <h2 class="text-2xl md:text-3xl font-extrabold ${colorClass}">${title}</h2>
+            <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
             ${state !== 'PAUSED' ? `<button onclick="startNewBallBounceGame()" class="mt-6 bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold py-3 px-8 rounded-full">${buttonText}</button>` : ''}
         `;
         ballBounceOverlayEl.classList.add('active');
@@ -1745,17 +2082,17 @@
     function initRPSGame() {
         gameScreenEl.innerHTML = `
             <div class="rps-container">
-                <div id="rpsResult" class="text-3xl text-yellow-400 font-bold mb-4">Make your choice!</div>
+                <div id="rpsResult" class="text-2xl md:text-3xl text-yellow-400 font-bold mb-4">Make your choice!</div>
                 <div class="flex justify-around w-full max-w-xs">
                     <span id="playerChoiceDisplay" class="rps-choice active">🤔</span>
-                    <span class="text-4xl text-white">VS</span>
+                    <span class="text-3xl md:text-4xl text-white">VS</span>
                     <span id="computerChoiceDisplay" class="rps-choice active">💻</span>
                 </div>
-                <div id="rpsScore" class="text-xl text-gray-300 mt-4">You: 0 | CPU: 0</div>
-                <div class="flex justify-center mt-6 gap-4">
-                    <button onclick="playRPS('rock')" class="game-button bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-6 rounded-xl text-3xl">✊</button>
-                    <button onclick="playRPS('paper')" class="game-button bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-xl text-3xl">✋</button>
-                    <button onclick="playRPS('scissors')" class="game-button bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-6 rounded-xl text-3xl">✌️</button>
+                <div id="rpsScore" class="text-lg md:text-xl text-gray-300 mt-4">You: 0 | CPU: 0</div>
+                <div class="flex justify-center mt-6 gap-3 md:gap-4">
+                    <button onclick="playRPS('rock')" class="game-button bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-5 md:px-6 rounded-xl text-2xl md:text-3xl">✊</button>
+                    <button onclick="playRPS('paper')" class="game-button bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-5 md:px-6 rounded-xl text-2xl md:text-3xl">✋</button>
+                    <button onclick="playRPS('scissors')" class="game-button bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-5 md:px-6 rounded-xl text-2xl md:text-3xl">✌️</button>
                 </div>
                 <button onclick="resetRPS()" class="game-button bg-gray-600 text-white py-2 px-4 rounded-lg mt-4 text-sm">Reset Score</button>
             </div>
@@ -1845,7 +2182,7 @@
         sudokuState.solutionBoard = PRESET_SOLUTION.map(row => [...row]);
         
         renderSudokuBoard();
-        updateSudokuOverlay('START', '🔢 Sudoku', 'Click to start playing!');
+        updateSudokuOverlay('START', '🔢 Sudoku', 'Tap to start playing!');
         sudokuState.overlayEl.classList.add('active');
     }
 
@@ -1861,6 +2198,8 @@
                 
                 const input = document.createElement('input');
                 input.type = 'number';
+                input.inputMode = 'numeric';
+                input.pattern = '[1-9]';
                 input.className = `sudoku-input ${isGiven ? 'given' : ''}`;
                 input.min = 1;
                 input.max = 9;
@@ -1928,8 +2267,8 @@
         let colorClass = state === 'WIN' ? 'text-yellow-400' : state === 'ERROR' ? 'text-red-400' : 'text-purple-400';
         
         sudokuState.overlayEl.innerHTML = `
-            <h2 class="text-3xl font-extrabold ${colorClass}">${title}</h2>
-            <p class="mt-4 text-lg text-gray-300">${message}</p>
+            <h2 class="text-2xl md:text-3xl font-extrabold ${colorClass}">${title}</h2>
+            <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
             <button onclick="sudokuState.overlayEl.classList.remove('active')" class="mt-6 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold py-3 px-8 rounded-full">Continue</button>
         `;
     }
@@ -1941,7 +2280,7 @@
         gameScreenEl.innerHTML = `
             <div class="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-green-900 to-green-950">
                 <div class="text-white text-xl font-bold mb-4">Score: <span id="wamScore">0</span></div>
-                <div id="whackMoleGrid" class="grid grid-cols-3 gap-3 w-full max-w-xs"></div>
+                <div id="whackMoleGrid" class="grid grid-cols-3 gap-2 md:gap-3 w-full max-w-xs"></div>
             </div>
         `;
         headerSubtitleEl.textContent = 'Tap the moles!';
@@ -1951,7 +2290,7 @@
         
         for (let i = 0; i < 9; i++) {
             const hole = document.createElement('div');
-            hole.className = 'aspect-square bg-gradient-to-b from-amber-800 to-amber-900 rounded-full flex items-center justify-center text-4xl cursor-pointer transition-all duration-200 border-4 border-amber-700';
+            hole.className = 'aspect-square bg-gradient-to-b from-amber-800 to-amber-900 rounded-full flex items-center justify-center text-3xl md:text-4xl cursor-pointer transition-all duration-200 border-4 border-amber-700';
             hole.innerHTML = '🕳️';
             hole.dataset.active = '0';
             
@@ -1993,22 +2332,21 @@
 
     function initTicTacToeGame() {
         gameScreenEl.innerHTML = `
-            <div class="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-pink-900 to-purple-900">
-                <div id="tttScoreBox" class="text-center mb-4">
-                    <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">Tic-Tac-Toe</h2>
-                    <p class="text-lg text-purple-300 mt-2">You (X): <span id="scoreX">${tttPlayerScore}</span> | CPU (O): <span id="scoreO">${tttCpuScore}</span></p>
+            <div class="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-pink-900 to-rose-950">
+                <div id="tttScoreBox" class="text-white text-lg mb-4 text-center">
+                    <p class="text-purple-300">You (X): ${tttPlayerScore} | CPU (O): ${tttCpuScore}</p>
                 </div>
-                <div id="ticTacToeBoard" class="grid grid-cols-3 gap-3 w-full max-w-xs"></div>
+                <div id="ticTacToeBoard" class="grid grid-cols-3 gap-2 w-full max-w-[280px] md:max-w-xs"></div>
             </div>
         `;
-        headerSubtitleEl.textContent = 'Beat the CPU!';
+        headerSubtitleEl.textContent = 'Beat the AI!';
         
         const board = document.getElementById('ticTacToeBoard');
         let cells = Array(9).fill('');
         
         for (let i = 0; i < 9; i++) {
             const cell = document.createElement('div');
-            cell.className = 'aspect-square bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-purple-500/30 rounded-xl flex items-center justify-center cursor-pointer text-4xl font-bold transition-all hover:scale-105 hover:border-purple-400';
+            cell.className = 'aspect-square bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-purple-500/30 rounded-xl flex items-center justify-center cursor-pointer text-3xl md:text-4xl font-bold transition-all hover:scale-105 hover:border-purple-400';
             cell.dataset.index = i;
             cell.onclick = () => playerMove(i, cell);
             board.appendChild(cell);
@@ -2073,8 +2411,8 @@
 
         function showResult(msg) {
             document.getElementById('tttScoreBox').innerHTML = `
-                <h2 class="text-2xl font-bold text-yellow-400 animate-bounce">${msg}</h2>
-                <p class="text-lg text-purple-300 mt-2">You (X): ${tttPlayerScore} | CPU (O): ${tttCpuScore}</p>
+                <h2 class="text-xl md:text-2xl font-bold text-yellow-400 animate-bounce">${msg}</h2>
+                <p class="text-base md:text-lg text-purple-300 mt-2">You (X): ${tttPlayerScore} | CPU (O): ${tttCpuScore}</p>
             `;
         }
     }
@@ -2091,8 +2429,8 @@
         gameScreenEl.innerHTML = `
             <div class="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-teal-900 to-cyan-900">
                 <div class="text-white text-xl font-bold mb-4">Score: <span id="colorScore">0</span></div>
-                <div id="colorBox" class="w-32 h-32 rounded-2xl mb-6 shadow-2xl border-4 border-white/20"></div>
-                <div id="colorOptions" class="grid grid-cols-3 gap-3 w-full max-w-xs"></div>
+                <div id="colorBox" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl mb-6 shadow-2xl border-4 border-white/20"></div>
+                <div id="colorOptions" class="grid grid-cols-3 gap-2 md:gap-3 w-full max-w-xs"></div>
             </div>
         `;
         headerSubtitleEl.textContent = 'Guess the correct color!';
@@ -2228,9 +2566,9 @@
         gameScreenEl.innerHTML = `
             <div id="reactionContainer" class="reaction-container waiting" onclick="handleReactionClick()">
                 <div class="text-center">
-                    <h2 id="reactionTitle" class="text-3xl font-bold text-white mb-4">⚡ Reaction Test</h2>
-                    <p id="reactionMessage" class="text-xl text-white/80">Click to start!</p>
-                    <p id="reactionTime" class="text-4xl font-bold text-white mt-4"></p>
+                    <h2 id="reactionTitle" class="text-2xl md:text-3xl font-bold text-white mb-4">⚡ Reaction Test</h2>
+                    <p id="reactionMessage" class="text-lg md:text-xl text-white/80">Tap to start!</p>
+                    <p id="reactionTime" class="text-3xl md:text-4xl font-bold text-white mt-4"></p>
                 </div>
             </div>
         `;
@@ -2246,7 +2584,7 @@
         if (container.classList.contains('result')) {
             // Reset
             container.className = 'reaction-container waiting';
-            message.textContent = 'Click when screen turns GREEN!';
+            message.textContent = isTouchDevice ? 'Tap when screen turns GREEN!' : 'Click when screen turns GREEN!';
             timeDisplay.textContent = '';
             
             const delay = 2000 + Math.random() * 3000;
@@ -2255,7 +2593,7 @@
             setTimeout(() => {
                 if (reactionState.waiting) {
                     container.className = 'reaction-container ready';
-                    message.textContent = 'CLICK NOW!';
+                    message.textContent = isTouchDevice ? 'TAP NOW!' : 'CLICK NOW!';
                     reactionState.startTime = Date.now();
                 }
             }, delay);
@@ -2263,14 +2601,14 @@
             // Record time
             const time = Date.now() - reactionState.startTime;
             container.className = 'reaction-container result';
-            message.textContent = 'Click to try again';
+            message.textContent = isTouchDevice ? 'Tap to try again' : 'Click to try again';
             timeDisplay.textContent = `${time} ms`;
             reactionState.waiting = false;
         } else if (container.classList.contains('waiting')) {
             if (reactionState.waiting) {
                 // Too early
                 container.className = 'reaction-container result';
-                message.textContent = 'Too early! Click to retry';
+                message.textContent = 'Too early! Tap to retry';
                 timeDisplay.textContent = '❌';
                 reactionState.waiting = false;
             } else {
@@ -2283,7 +2621,7 @@
                 setTimeout(() => {
                     if (reactionState.waiting) {
                         container.className = 'reaction-container ready';
-                        message.textContent = 'CLICK NOW!';
+                        message.textContent = isTouchDevice ? 'TAP NOW!' : 'CLICK NOW!';
                         reactionState.startTime = Date.now();
                     }
                 }, delay);
@@ -2317,11 +2655,15 @@
             <div class="game-2048-container">
                 <div class="text-white text-xl font-bold mb-4">Score: <span id="score2048">0</span></div>
                 <div id="grid2048" class="grid-2048"></div>
-                <p class="text-gray-400 text-sm mt-4">Use arrow keys or swipe</p>
+                <p class="text-gray-400 text-sm mt-4">${isTouchDevice ? 'Swipe to move tiles' : 'Use arrow keys to move'}</p>
             </div>
         `;
         headerSubtitleEl.textContent = 'Combine tiles to get 2048!';
         game2048ControlsEl.classList.remove('hidden');
+        
+        if (isTouchDevice) {
+            swipeHintEl.classList.remove('hidden');
+        }
         
         game2048State.grid = Array(16).fill(0);
         game2048State.score = 0;
@@ -2331,24 +2673,63 @@
         
         document.onkeydown = handle2048KeyDown;
         
-        // Touch support
-        let touchStartX, touchStartY;
+        // Touch support with improved swipe detection
+        let touchStartX, touchStartY, touchEndX, touchEndY;
         const gridEl = document.getElementById('grid2048');
+        
         gridEl.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-        });
+        }, { passive: true });
+        
+        gridEl.addEventListener('touchmove', e => {
+            e.preventDefault();
+        }, { passive: false });
+        
         gridEl.addEventListener('touchend', e => {
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            const dy = e.changedTouches[0].clientY - touchStartY;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                if (dx > 30) move2048('right');
-                else if (dx < -30) move2048('left');
-            } else {
-                if (dy > 30) move2048('down');
-                else if (dy < -30) move2048('up');
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+            
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+            
+            if (Math.max(absDx, absDy) > 30) {
+                if (absDx > absDy) {
+                    move2048(dx > 0 ? 'right' : 'left');
+                } else {
+                    move2048(dy > 0 ? 'down' : 'up');
+                }
             }
-        });
+        }, { passive: true });
+        
+        // Also add swipe to the container for better mobile experience
+        const container = gameScreenEl;
+        container.addEventListener('touchstart', e => {
+            if (activeGame !== 'game2048') return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        container.addEventListener('touchend', e => {
+            if (activeGame !== 'game2048') return;
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+            
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+            
+            if (Math.max(absDx, absDy) > 50) {
+                if (absDx > absDy) {
+                    move2048(dx > 0 ? 'right' : 'left');
+                } else {
+                    move2048(dy > 0 ? 'down' : 'up');
+                }
+            }
+        }, { passive: true });
     }
 
     function addNewTile() {
@@ -2433,11 +2814,11 @@
     function initNumberGuessGame() {
         gameScreenEl.innerHTML = `
             <div class="number-guess-container">
-                <h2 class="text-2xl font-bold text-white mb-2">🔮 Guess the Number</h2>
+                <h2 class="text-xl md:text-2xl font-bold text-white mb-2">🔮 Guess the Number</h2>
                 <p class="text-gray-400 mb-6">Between 1 and 100</p>
-                <input type="number" id="guessInput" class="guess-input" min="1" max="100" placeholder="?">
+                <input type="number" id="guessInput" class="guess-input" inputmode="numeric" min="1" max="100" placeholder="?">
                 <button onclick="makeGuess()" class="game-button mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 px-8 rounded-full font-bold">Guess!</button>
-                <p id="guessMessage" class="text-xl text-gray-300 mt-4"></p>
+                <p id="guessMessage" class="text-lg md:text-xl text-gray-300 mt-4"></p>
                 <p id="guessAttempts" class="text-sm text-gray-400 mt-2">Attempts: 0</p>
             </div>
         `;
@@ -2457,7 +2838,7 @@
         
         if (isNaN(guess) || guess < 1 || guess > 100) {
             message.textContent = 'Enter a number between 1-100!';
-            message.className = 'text-xl text-yellow-400 mt-4';
+            message.className = 'text-lg md:text-xl text-yellow-400 mt-4';
             return;
         }
         
@@ -2466,21 +2847,21 @@
         
         if (guess === numberGuessState.target) {
             message.textContent = `🎉 Correct! It was ${numberGuessState.target}!`;
-            message.className = 'text-xl text-green-400 mt-4';
+            message.className = 'text-lg md:text-xl text-green-400 mt-4';
             setTimeout(() => {
                 numberGuessState.target = Math.floor(Math.random() * 100) + 1;
                 numberGuessState.attempts = 0;
                 document.getElementById('guessAttempts').textContent = 'Attempts: 0';
                 message.textContent = 'New game started!';
-                message.className = 'text-xl text-gray-300 mt-4';
+                message.className = 'text-lg md:text-xl text-gray-300 mt-4';
                 input.value = '';
             }, 2000);
         } else if (guess < numberGuessState.target) {
             message.textContent = '📈 Too low! Go higher!';
-            message.className = 'text-xl text-blue-400 mt-4';
+            message.className = 'text-lg md:text-xl text-blue-400 mt-4';
         } else {
             message.textContent = '📉 Too high! Go lower!';
-            message.className = 'text-xl text-red-400 mt-4';
+            message.className = 'text-lg md:text-xl text-red-400 mt-4';
         }
         input.value = '';
         input.focus();
@@ -2502,19 +2883,22 @@
 
     function initFlappyBirdGame() {
         gameScreenEl.innerHTML = `<canvas id="flappyCanvas"></canvas><div id="flappyOverlay" class="overlay"></div>`;
-        headerSubtitleEl.textContent = 'Tap or press SPACE to fly!';
-        mobileControlsEl.classList.remove('hidden');
+        headerSubtitleEl.textContent = isTouchDevice ? 'Tap to fly!' : 'Tap or press SPACE to fly!';
+        
+        if (isTouchDevice) {
+            tapHintEl.classList.remove('hidden');
+        }
         
         flappyCanvas = document.getElementById('flappyCanvas');
         flappyCtx = flappyCanvas.getContext('2d');
         flappyOverlayEl = document.getElementById('flappyOverlay');
 
         const resizeFn = () => {
-            const containerSize = flappyCanvas.parentElement.offsetWidth;
+            const containerSize = Math.min(flappyCanvas.parentElement.offsetWidth, flappyCanvas.parentElement.offsetHeight);
             flappyCanvas.width = containerSize;
             flappyCanvas.height = containerSize;
             resetFlappy();
-            updateFlappyOverlay('START', '🐦 Flappy Clone', 'Press SPACE or tap to start!');
+            updateFlappyOverlay('START', '🐦 Flappy Clone', isTouchDevice ? 'Tap to start!' : 'Press SPACE or tap to start!');
         };
 
         resizeObserver = new ResizeObserver(() => resizeFn());
@@ -2540,6 +2924,15 @@
             flappyJump();
         });
         
+        flappyCanvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (flappyState.isPaused) {
+                flappyState.isPaused = false;
+                flappyOverlayEl.classList.remove('active');
+            }
+            flappyJump();
+        });
+        
         gameLoopId = requestAnimationFrame(flappyLoop);
     }
 
@@ -2558,8 +2951,8 @@
         if (!flappyOverlayEl) return;
         let colorClass = state === 'GAMEOVER' ? 'text-red-400' : 'text-sky-400';
         flappyOverlayEl.innerHTML = `
-            <h2 class="text-3xl font-extrabold ${colorClass}">${title}</h2>
-            <p class="mt-4 text-lg text-gray-300">${message}</p>
+            <h2 class="text-2xl md:text-3xl font-extrabold ${colorClass}">${title}</h2>
+            <p class="mt-4 text-base md:text-lg text-gray-300">${message}</p>
             ${state === 'GAMEOVER' ? `<button onclick="restartFlappy()" class="mt-6 bg-gradient-to-r from-sky-500 to-blue-500 text-white font-bold py-3 px-8 rounded-full">🔄 Try Again</button>` : ''}
         `;
         flappyOverlayEl.classList.add('active');
@@ -2659,6 +3052,7 @@
         renderGameMenu();
         placeholderScreenEl.style.opacity = '1';
         placeholderScreenEl.style.pointerEvents = 'auto';
+        updateControlsDisplay();
     }
 </script>
 
