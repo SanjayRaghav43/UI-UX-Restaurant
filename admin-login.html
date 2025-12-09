@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GourmetVerse Admin</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Libraries for Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0f0806;
+            background: linear-gradient(135deg, #0a0503 0%, #1a0f0d 50%, #2d1810 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* --- 2D CHEF CHARACTER --- */
+        .chef-wrapper {
+            width: 150px; height: 150px; position: relative;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 20;
+        }
+        .face { 
+            width: 100px; height: 100px; background: #FFDFC4; 
+            border-radius: 50%; position: absolute; bottom: 0; left: 25px; 
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.1);
+        }
+        .hat-top { 
+            width: 120px; height: 90px; background: white; 
+            border-radius: 50% 50% 40% 40%; position: absolute; 
+            top: -45px; left: 15px; 
+            box-shadow: inset -5px -5px 10px #e0e0e0;
+        }
+        .hat-base { 
+            width: 110px; height: 35px; background: white; 
+            border-radius: 8px; position: absolute; top: 30px; left: 20px; 
+            box-shadow: 0 4px 5px rgba(0,0,0,0.1);
+        }
+        .eyes-container {
+            position: absolute; top: 40px; width: 100%;
+            display: flex; justify-content: center; gap: 18px;
+            transition: 0.3s;
+        }
+        .eye {
+            width: 18px; height: 18px; background: #fff;
+            border-radius: 50%; border: 1px solid #ddd;
+            position: relative; overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .pupil {
+            width: 8px; height: 8px; background: #2D1B69;
+            border-radius: 50%; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            transition: opacity 0.2s;
+        }
+        .happy-eye {
+            width: 20px; height: 10px;
+            border-top: 3px solid #2D1B69;
+            border-radius: 50% 50% 0 0;
+            background: transparent;
+            display: none; position: absolute; top: 8px;
+        }
+        .mustache {
+            width: 44px; height: 12px;
+            border-bottom: 6px solid #4A3B2A;
+            border-radius: 50%;
+            position: absolute; bottom: 25px; left: 28px;
+            transition: 0.3s;
+        }
+        .hands-container {
+            position: absolute; bottom: -20px; width: 100%;
+            display: flex; justify-content: space-between;
+            padding: 0 5px; opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: none;
+        }
+        .hand {
+            width: 35px; height: 35px; background: #FFDFC4;
+            border-radius: 50%; border: 3px solid white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        /* --- ANIMATION STATES --- */
+        .chef-wrapper.covering-eyes .hands-container { bottom: 40px; opacity: 1; transform: scale(1); }
+        .chef-wrapper.covering-eyes .eye {
+            height: 4px; border-radius: 2px; background: #4A3B2A; border: none; transform: translateY(7px);
+        }
+        .chef-wrapper.covering-eyes .pupil { opacity: 0; }
+
+        .chef-wrapper.success-mode .hands-container { bottom: 80px; opacity: 1; transform: scale(1.1) rotate(-10deg); }
+        .chef-wrapper.success-mode .eye { display: none; }
+        .chef-wrapper.success-mode .happy-eye { display: block; }
+
+        @keyframes floatChef { 0% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+        .animate-float { animation: floatChef 3s infinite ease-in-out; }
+
+        /* --- UI STYLES --- */
+        .glass { background: rgba(20, 10, 5, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 165, 0, 0.15); }
+        .glass-light { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .corner-decoration { position: absolute; width: 24px; height: 24px; border-color: rgba(251, 191, 36, 0.4); border-style: solid; pointer-events: none; transition: all 0.3s ease; }
+        .glass:hover .corner-decoration { border-color: rgba(251, 191, 36, 0.8); width: 30px; height: 30px; }
+        .corner-tl { top: 0; left: 0; border-width: 2px 0 0 2px; border-radius: 1.5rem 0 0 0; }
+        .corner-tr { top: 0; right: 0; border-width: 2px 2px 0 0; border-radius: 0 1.5rem 0 0; }
+        .corner-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; border-radius: 0 0 0 1.5rem; }
+        .corner-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; border-radius: 0 0 1.5rem 0; }
+
+        .admin-input { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s; }
+        .admin-input:focus { background: rgba(0, 0, 0, 0.7); border-color: #f59e0b; outline: none; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2); }
+        .btn-primary { background: linear-gradient(135deg, #f97316 0%, #d97706 100%); color: white; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.4); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s; }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+        .font-heading { font-family: 'Playfair Display', serif; }
+        
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; display: none; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .animate-slide-in { animation: slideIn 0.5s ease-out forwards; opacity: 0; }
+        
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+
+        .section-hidden { display: none !important; }
+
+        /* Dashboard Specific */
+        .stat-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-5px); border-color: rgba(251, 191, 36, 0.5); }
+        
+        .order-table th { padding: 1rem; color: rgba(253, 230, 138, 0.6); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; background: rgba(0,0,0,0.2); }
+        .order-table td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .order-table tr:hover td { background: rgba(255,255,255,0.02); }
+        
+        .star-filled { color: #f59e0b; }
+        .star-empty { color: rgba(255, 255, 255, 0.1); }
+        
+        .modal-overlay { background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+    </style>
+</head>
+
+<body>
+
+    <!-- Confetti Layer -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- ======================== LOGIN SECTION ======================== -->
+    <section id="login-section" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        
+        <!-- Background Decorations -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+        </div>
+
+        <!-- 2D CHEF CHARACTER -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -290px); z-index: 30;">
+             <div id="chef" class="chef-wrapper animate-float">
+                <div class="hat-top"></div>
+                <div class="hat-base"></div>
+
+                <div class="face">
+                    <div class="eyes-container">
+                        <div class="eye"><div class="pupil"></div></div>
+                        <div class="eye"><div class="pupil"></div></div>
+                        <div class="happy-eye" style="left: 28px;"></div>
+                        <div class="happy-eye" style="right: 28px;"></div>
+                    </div>
+                    <div class="mustache"></div>
+                </div>
+
+                <div class="hands-container">
+                    <div class="hand"></div>
+                    <div class="hand"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Card -->
+        <div class="relative w-full max-w-md animate-fade-in" style="margin-top: 80px; z-index: 25;">
+            <div class="corner-decoration corner-tl"></div>
+            <div class="corner-decoration corner-tr"></div>
+            <div class="corner-decoration corner-bl"></div>
+            <div class="corner-decoration corner-br"></div>
+            
+            <div class="glass rounded-3xl p-8 md:p-10 shadow-2xl">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 mb-4 shadow-xl shadow-orange-500/20 ring-4 ring-orange-500/10">
+                        <span class="text-4xl">👨‍🍳</span>
+                    </div>
+                    <h1 class="font-heading text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">
+                        GOURMET<span class="text-orange-500">VERSE</span>
+                    </h1>
+                    <p class="text-[10px] font-bold text-amber-200/50 tracking-[0.3em] mt-2 uppercase">Restaurant Admin Portal</p>
+                </div>
+                
+                <form id="login-form" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-amber-200/70 tracking-widest mb-2 uppercase">Username</label>
+                        <input type="text" id="username" class="admin-input w-full px-4 py-3 rounded-xl text-sm" placeholder="Enter username" autocomplete="off" required>
+                    
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-amber-200/70 tracking-widest mb-2 uppercase">Password</label>
+                        <div class="relative">
+                            <input type="password" id="password" class="admin-input w-full px-4 py-3 rounded-xl text-sm pr-12" placeholder="Enter password" required>
+                            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-amber-200/40 hover:text-amber-200 transition p-1">
+                                <span id="eye-icon">👁️</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="login-error" class="hidden bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-300 text-xs font-medium text-center">
+                        Invalid username or password
+                    </div>
+                    <button type="submit" class="btn-primary w-full py-4 rounded-xl text-sm tracking-wider font-bold flex items-center justify-center gap-2">
+                        <span>🔐</span> <span>LOGIN TO DASHBOARD</span>
+                    </button>
+                </form>
+                
+                <div class="mt-8 pt-6 border-t border-white/5 text-center">
+                    <p class="text-xs text-amber-200/40">Secure Admin Access</p>
+                    <!-- Back to Restaurant Button -->
+<div class="mt-6 text-center">
+    <button 
+        onclick="window.location.href='index.html'" 
+        class="btn-secondary w-full py-3 rounded-xl text-sm tracking-wider hover:bg-white/20 transition">
+        🍽️ Back to Restaurant
+    </button>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== DASHBOARD SECTION ==================== -->
+    <section id="dashboard-section" class="min-h-screen section-hidden">
+        
+        <!-- Top Navigation -->
+        <nav class="glass sticky top-0 z-50 px-4 md:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">👨‍🍳</span>
+                    <div>
+                        <h1 class="font-heading text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">
+                            GOURMETVERSE
+                        </h1>
+                        <p class="text-[10px] text-amber-200/50 tracking-[0.2em]">ADMIN DASHBOARD</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <span class="hidden md:block text-sm text-amber-200/70">Welcome, <span class="text-orange-400 font-semibold" id="admin-name">Admin</span></span>
+                <button 
+                    onclick="logout()"
+                    class="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"
+                >
+                    <span>🚪</span>
+                    <span class="hidden sm:inline">Logout</span>
+                </button>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+            
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="stat-card rounded-2xl p-5 animate-slide-in" style="animation-delay: 0.1s">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-3xl">📦</span>
+                        <span class="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">Total</span>
+                    </div>
+                    <p class="text-3xl font-bold text-white font-mono" id="stat-total-orders">0</p>
+                    <p class="text-xs text-amber-200/60 mt-1">Total Orders</p>
+                </div>
+                
+                <div class="stat-card rounded-2xl p-5 animate-slide-in" style="animation-delay: 0.2s">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-3xl">💰</span>
+                        <span class="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-400">Revenue</span>
+                    </div>
+                    <p class="text-3xl font-bold text-white font-mono" id="stat-total-revenue">₹0</p>
+                    <p class="text-xs text-amber-200/60 mt-1">Total Revenue</p>
+                </div>
+                
+                <div class="stat-card rounded-2xl p-5 animate-slide-in" style="animation-delay: 0.3s">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-3xl">📊</span>
+                        <span class="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400">Average</span>
+                    </div>
+                    <p class="text-3xl font-bold text-white font-mono" id="stat-avg-order">₹0</p>
+                    <p class="text-xs text-amber-200/60 mt-1">Avg Order Value</p>
+                </div>
+                
+                <div class="stat-card rounded-2xl p-5 animate-slide-in" style="animation-delay: 0.4s">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-3xl">🌟</span>
+                        <span class="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400">Today</span>
+                    </div>
+                    <p class="text-3xl font-bold text-white font-mono" id="stat-today-orders">0</p>
+                    <p class="text-xs text-amber-200/60 mt-1">Today's Orders</p>
+                </div>
+            </div>
+            
+            <!-- Controls Bar -->
+            <div class="glass rounded-2xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                <!-- Search -->
+                <div class="relative w-full md:w-80">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-amber-200/50">🔍</span>
+                    <input 
+                        type="text" 
+                        id="search-input"
+                        class="admin-input w-full pl-12 pr-4 py-3 rounded-xl text-sm"
+                        placeholder="Search by name, email, phone, order ID..."
+                        oninput="searchOrders()"
+                    >
+                </div>
+                
+                <!-- Date Filters -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <input 
+                        type="date" 
+                        id="date-from"
+                        class="admin-input px-3 py-2 rounded-lg text-sm"
+                        onchange="filterByDate()"
+                    >
+                    <span class="text-amber-200/50">to</span>
+                    <input 
+                        type="date" 
+                        id="date-to"
+                        class="admin-input px-3 py-2 rounded-lg text-sm"
+                        onchange="filterByDate()"
+                    >
+                    <button onclick="clearFilters()" class="btn-secondary px-3 py-2 rounded-lg text-xs">
+                        Clear
+                    </button>
+                </div>
+                
+                <!-- Export Buttons -->
+                <div class="flex items-center gap-2">
+                    <button onclick="exportToExcel()" class="btn-secondary px-4 py-2 rounded-lg text-xs flex items-center gap-2">
+                        <span>📊</span>
+                        <span>Excel</span>
+                    </button>
+                    <button onclick="exportToPDF()" class="btn-primary px-4 py-2 rounded-lg text-xs flex items-center gap-2">
+                        <span>📄</span>
+                        <span>PDF</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Orders Table -->
+            <div class="glass rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto max-h-[60vh]">
+                    <table class="order-table w-full">
+                        <thead>
+                            <tr>
+                                <th class="text-left rounded-tl-xl">Order ID</th>
+                                <th class="text-left">Customer</th>
+                                <th class="text-left">Contact</th>
+                                <th class="text-left">Order Items</th>
+                                <th class="text-right">Amount</th>
+                                <th class="text-center">Payment</th>
+                                <th class="text-center">Rating</th>
+                                <th class="text-left">Feedback</th>
+                                <th class="text-center">Date & Time</th>
+                                <th class="text-center rounded-tr-xl">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <!-- Orders will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden py-16 text-center">
+                    <div class="text-6xl mb-4">📋</div>
+                    <h3 class="text-xl font-semibold text-amber-200/80 mb-2">No Orders Yet</h3>
+                    <p class="text-sm text-amber-200/50">Orders will appear here once customers place them</p>
+                </div>
+            </div>
+            
+            <!-- Pagination Info -->
+            <div class="mt-4 text-center text-sm text-amber-200/50">
+                Showing <span id="showing-count">0</span> orders
+            </div>
+            
+            <!-- Demo Data Button (for testing) -->
+            <div class="mt-8 text-center">
+                <button onclick="addDemoData()" class="btn-secondary px-6 py-3 rounded-xl text-sm">
+                    ➕ Add Demo Orders (For Testing)
+                </button>
+                <button onclick="clearAllData()" class="ml-3 px-6 py-3 rounded-xl text-sm bg-red-500/20 border border-red-500/50 text-red-300 hover:bg-red-500/30 transition">
+                    🗑️ Clear All Data
+                </button>
+            </div>
+        </main>
+    </section>
+    
+    <!-- ==================== ORDER DETAIL MODAL ==================== -->
+    <div id="order-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="glass rounded-3xl p-6 md:p-8 m-4 animate-fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-heading text-2xl font-bold text-orange-400">Order Details</h2>
+                    <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition flex items-center justify-center">
+                        ✕
+                    </button>
+                </div>
+                <div id="modal-content">
+                    <!-- Content will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        /* ==================== SHARED CART (LOCAL STORAGE) ==================== */
+        const SharedCart = (function () {
+            const CART_KEY = 'gourmetverse_cart';
+            const ORDER_HISTORY_KEY = 'gourmetverse_orders';
+
+            const cartListeners = [];
+
+            // ---------- CART HELPERS ----------
+            function getCart() {
+                try {
+                    const raw = localStorage.getItem(CART_KEY);
+                    return raw ? JSON.parse(raw) : [];
+                } catch (e) {
+                    console.warn('Error reading cart from localStorage', e);
+                    return [];
+                }
+            }
+
+            function saveCart(cart) {
+                localStorage.setItem(CART_KEY, JSON.stringify(cart));
+                // notify listeners
+                cartListeners.forEach(cb => {
+                    try { cb([...cart]); } catch (_) {}
+                });
+            }
+
+            function addItem(item) {
+                const cart = getCart();
+                cart.push(item);
+                saveCart(cart);
+                return cart;
+            }
+
+            function removeItem(index) {
+                const cart = getCart();
+                if (index >= 0 && index < cart.length) {
+                    cart.splice(index, 1);
+                    saveCart(cart);
+                }
+                return cart;
+            }
+
+            function clearCart() {
+                const cart = [];
+                saveCart(cart);
+                return cart;
+            }
+
+            function onCartChange(cb) {
+                if (typeof cb === 'function') cartListeners.push(cb);
+            }
+
+            // Sync across tabs / windows
+            window.addEventListener('storage', (e) => {
+                if (e.key === CART_KEY) {
+                    const cart = getCart();
+                    cartListeners.forEach(cb => {
+                        try { cb([...cart]); } catch (_) {}
+                    });
+                }
+                // Optional: Listen for Order updates across tabs to refresh Dashboard automatically
+                if (e.key === ORDER_HISTORY_KEY && typeof loadOrders === 'function') {
+                    loadOrders();
+                }
+            });
+
+            // ---------- ORDER HISTORY HELPERS ----------
+            function getOrderHistory() {
+                try {
+                    const raw = localStorage.getItem(ORDER_HISTORY_KEY);
+                    return raw ? JSON.parse(raw) : [];
+                } catch (e) {
+                    console.warn('Error reading orders from localStorage', e);
+                    return [];
+                }
+            }
+
+            function saveOrderHistory(list) {
+                localStorage.setItem(ORDER_HISTORY_KEY, JSON.stringify(list));
+            }
+
+            function nextOrderId(list) {
+                if (!list.length) return 1;
+                // Check if orderId is numeric or string "GV-..."
+                // Since user wants to link payments, let's keep robust handling
+                const ids = list.map(o => {
+                    if (typeof o.orderId === 'number') return o.orderId;
+                    if (typeof o.orderId === 'string' && o.orderId.startsWith('GV-')) {
+                        return parseInt(o.orderId.replace('GV-', '')) || 0;
+                    }
+                    return 0;
+                });
+                return Math.max(0, ...ids) + 1;
+            }
+
+            function addToOrderHistory(order) {
+                const list = getOrderHistory();
+                const now = new Date().toISOString();
+                
+                // If the incoming order already has a customized ID (like from Demo Data), keep it.
+                // Otherwise generate one.
+                let orderId = order.orderId;
+                if (!orderId) {
+                    orderId = nextOrderId(list);
+                }
+
+                const data = {
+                    ...order,
+                    orderId,
+                    orderDate: now
+                };
+
+                list.unshift(data); // Add to top of list
+                saveOrderHistory(list);
+
+                return {
+                    orderId,
+                    orderDate: now
+                };
+            }
+
+            function updateOrder(orderId, patch) {
+                const list = getOrderHistory();
+                const idx = list.findIndex(o => o.orderId === orderId);
+                if (idx !== -1) {
+                    list[idx] = { ...list[idx], ...patch };
+                    saveOrderHistory(list);
+                    return list[idx];
+                }
+                return null;
+            }
+
+            function clearOrderHistory() {
+                saveOrderHistory([]);
+            }
+
+            function deleteFromHistory(orderId) {
+                const list = getOrderHistory().filter(o => o.orderId !== orderId);
+                saveOrderHistory(list);
+            }
+
+            function searchOrders(query) {
+                const q = String(query || '').toLowerCase();
+                const list = getOrderHistory();
+                if (!q) return list;
+
+                return list.filter(o => {
+                    return (
+                        (o.customerName && o.customerName.toLowerCase().includes(q)) ||
+                        (o.customerEmail && o.customerEmail.toLowerCase().includes(q)) ||
+                        (o.customerPhone && o.customerPhone.toLowerCase().includes(q)) ||
+                        (String(o.orderId).toLowerCase().includes(q)) ||
+                        (o.paymentMethod && o.paymentMethod.toLowerCase().includes(q)) ||
+                        (o.transactionId && o.transactionId.toLowerCase().includes(q))
+                    );
+                });
+            }
+
+            function filterOrdersByDate(from, to) {
+                const list = getOrderHistory();
+                if (!from && !to) return list;
+
+                // Simple string comparison for YYYY-MM-DD works well
+                return list.filter(o => {
+                    if (!o.orderDate) return false;
+                    const d = o.orderDate.split('T')[0];
+                    if (from && d < from) return false;
+                    if (to && d > to) return false;
+                    return true;
+                });
+            }
+
+            function getOrderStats() {
+                const list = getOrderHistory();
+                const totalOrders = list.length;
+                const totalRevenue = list.reduce(
+                    (sum, o) => sum + (parseFloat(o.totalAmount) || 0),
+                    0
+                );
+                const avgOrderValue = totalOrders ? totalRevenue / totalOrders : 0;
+                
+                const avgRatingRaw = totalOrders
+                    ? list.reduce((s, o) => s + (parseFloat(o.rating) || 0), 0) / totalOrders
+                    : 0;
+                const avgRating = isNaN(avgRatingRaw) ? 0 : avgRatingRaw;
+
+                // today's orders
+                const todayStr = new Date().toISOString().slice(0, 10);
+                const todayOrders = list.filter(o =>
+                    o.orderDate && o.orderDate.slice(0, 10) === todayStr
+                ).length;
+
+                return {
+                    totalOrders,
+                    totalRevenue,
+                    avgOrderValue,
+                    avgRating,
+                    todayOrders
+                };
+            }
+
+            return {
+                CART_KEY,
+                ORDER_HISTORY_KEY,
+                init(cb) {
+                    if (cb) onCartChange(cb);
+                    return getCart();
+                },
+                getCart,
+                addItem,
+                removeItem,
+                clearCart,
+                onCartChange,
+                getOrderHistory,
+                addToOrderHistory,
+                updateOrder,
+                clearOrderHistory,
+                deleteFromHistory,
+                searchOrders,
+                filterOrdersByDate,
+                getOrderStats
+            };
+        })();
+
+        // ==================== AUTHENTICATION ====================
+        const ADMIN_CREDENTIALS = {
+            username: 'sanjay',
+            password: 'Sanjay'
+        };
+        
+        let isLoggedIn = false;
+        let currentOrders = [];
+        
+        // Check if already logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            const loggedIn = sessionStorage.getItem('admin_logged_in');
+            if (loggedIn === 'true') {
+                isLoggedIn = true;
+                showDashboard();
+            }
+        });
+        
+        // Login Form Handler
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                // Animate Success
+                chef.classList.remove("covering-eyes");
+                chef.classList.add("success-mode");
+                startConfetti();
+                
+                setTimeout(() => {
+                    isLoggedIn = true;
+                    sessionStorage.setItem('admin_logged_in', 'true');
+                    document.getElementById('login-error').classList.add('hidden');
+                    showDashboard();
+                    
+                    // Cleanup animation
+                    chef.classList.remove("success-mode");
+                    document.getElementById('confetti-canvas').style.display = 'none';
+                }, 2000); // Wait for confetti
+                
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+                document.getElementById('login-form').classList.add('animate-shake');
+                setTimeout(() => document.getElementById('login-form').classList.remove('animate-shake'), 500);
+            }
+        });
+        
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+        
+        function logout() {
+            isLoggedIn = false;
+            sessionStorage.removeItem('admin_logged_in');
+            document.getElementById('login-section').classList.remove('section-hidden');
+            document.getElementById('dashboard-section').classList.add('section-hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            // Reset animations
+            document.getElementById("chef").style.transform = "translateY(0)";
+        }
+        
+        function showDashboard() {
+            // Chef flies up animation
+            document.getElementById("chef").style.transition = "1s ease";
+            document.getElementById("chef").style.transform = "translateY(-300px)";
+
+            setTimeout(() => {
+                document.getElementById("login-section").classList.add("section-hidden");
+                document.getElementById("dashboard-section").classList.remove("section-hidden");
+                loadOrders();
+            }, 600);
+        }
+        
+        // ==================== ORDER MANAGEMENT ====================
+        function loadOrders() {
+            currentOrders = SharedCart.getOrderHistory();
+            renderOrders(currentOrders);
+            updateStats();
+        }
+        
+        function updateStats() {
+            const stats = SharedCart.getOrderStats();
+            document.getElementById('stat-total-orders').textContent = stats.totalOrders;
+            document.getElementById('stat-total-revenue').textContent = '₹' + stats.totalRevenue.toFixed(0);
+            document.getElementById('stat-avg-order').textContent = '₹' + stats.avgOrderValue.toFixed(0);
+            document.getElementById('stat-today-orders').textContent = stats.todayOrders;
+        }
+        
+        function renderOrders(orders) {
+            const tbody = document.getElementById('orders-table-body');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (!orders || orders.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                document.getElementById('showing-count').textContent = '0';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            document.getElementById('showing-count').textContent = orders.length;
+            
+            tbody.innerHTML = orders.map((order, index) => `
+                <tr class="animate-fade-in" style="animation-delay: ${index * 0.05}s">
+                    <td>
+                        <span class="font-mono text-orange-400 font-semibold">
+                            ${typeof order.orderId === 'number' ? 'GV-'+order.orderId : order.orderId}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold">
+                                ${(order.customerName || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-white">${order.customerName || 'Guest'}</p>
+                                <p class="text-xs text-amber-200/50">${order.customerEmail || 'No email'}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <p class="text-sm">${order.customerPhone || 'N/A'}</p>
+                    </td>
+                    <td>
+                        <div class="max-w-xs">
+                            ${renderOrderItems(order.items)}
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <span class="text-xl font-bold text-green-400 font-mono">₹${order.totalAmount || 0}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold ${getPaymentBadgeClass(order.paymentMethod)}">
+                            ${getPaymentIcon(order.paymentMethod)} ${order.paymentMethod || 'N/A'}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        ${renderStars(order.rating)}
+                    </td>
+                    <td>
+                        <p class="text-sm text-amber-200/80 max-w-[200px] truncate" title="${order.feedback || 'No feedback'}">
+                            ${order.feedback || '-'}
+                        </p>
+                    </td>
+                    <td class="text-center">
+                        <div class="text-xs">
+                            <p class="text-amber-200">${formatDate(order.orderDate)}</p>
+                            <p class="text-amber-200/50">${formatTime(order.orderDate)}</p>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="viewOrder('${order.orderId}')" class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition flex items-center justify-center" title="View Details">
+                                👁️
+                            </button>
+                            <button onclick="deleteOrder('${order.orderId}')" class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition flex items-center justify-center" title="Delete">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function renderOrderItems(items) {
+            if (!items || items.length === 0) return '<span class="text-amber-200/50">No items</span>';
+            
+            if (items.length <= 2) {
+                return items.map(item => `
+                    <span class="inline-block px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs mr-1 mb-1">
+                        ${item.name || item} × ${item.qty || 1}
+                    </span>
+                `).join('');
+            }
+            
+            return `
+                <span class="inline-block px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs mr-1 mb-1">
+                    ${items[0].name || items[0]} × ${items[0].qty || 1}
+                </span>
+                <span class="inline-block px-2 py-1 rounded-full bg-white/10 text-amber-200/70 text-xs">
+                    +${items.length - 1} more
+                </span>
+            `;
+        }
+        
+        function renderStars(rating) {
+            if (!rating) return '<span class="text-amber-200/30">-</span>';
+            const stars = [];
+            for (let i = 1; i <= 5; i++) {
+                stars.push(i <= rating ? '<span class="star-filled">★</span>' : '<span class="star-empty">★</span>');
+            }
+            return stars.join('');
+        }
+        
+        function getPaymentBadgeClass(method) {
+            const classes = {
+                'UPI': 'bg-purple-500/30 text-purple-300',
+                'Card': 'bg-blue-500/30 text-blue-300',
+                'Cash': 'bg-green-500/30 text-green-300',
+                'Net Banking': 'bg-cyan-500/30 text-cyan-300',
+                'Wallet': 'bg-pink-500/30 text-pink-300'
+            };
+            return classes[method] || 'bg-gray-500/30 text-gray-300';
+        }
+        
+        function getPaymentIcon(method) {
+            const icons = { 'UPI': '📱', 'Card': '💳', 'Cash': '💵', 'Net Banking': '🏦', 'Wallet': '👛' };
+            return icons[method] || '💰';
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+        
+        function formatTime(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        // ==================== SEARCH & FILTER ====================
+        function searchOrders() {
+            const query = document.getElementById('search-input').value;
+            const results = SharedCart.searchOrders(query);
+            renderOrders(results);
+        }
+        
+        function filterByDate() {
+            const from = document.getElementById('date-from').value;
+            const to = document.getElementById('date-to').value;
+            const results = SharedCart.filterOrdersByDate(from, to);
+            renderOrders(results);
+        }
+        
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            renderOrders(SharedCart.getOrderHistory());
+        }
+        
+        // ==================== VIEW & DELETE ====================
+        function viewOrder(orderId) {
+            // Check for both string and number types
+            let order = currentOrders.find(o => o.orderId == orderId);
+            if (!order) return;
+            
+            const modal = document.getElementById('order-modal');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-sm font-semibold text-amber-200/60 mb-3 tracking-wider">CUSTOMER INFORMATION</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xl font-bold">
+                                    ${(order.customerName || 'U').charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-white text-lg">${order.customerName || 'Guest'}</p>
+                                    <p class="text-sm text-amber-200/50">${order.customerEmail || 'No email'}</p>
+                                </div>
+                            </div>
+                            <div class="glass-light rounded-xl p-4 space-y-2">
+                                <p class="text-sm"><span class="text-amber-200/60">📞 Phone:</span> <span class="text-white">${order.customerPhone || 'N/A'}</span></p>
+                                <p class="text-sm"><span class="text-amber-200/60">📍 Address:</span> <span class="text-white">${order.customerAddress || 'N/A'}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-sm font-semibold text-amber-200/60 mb-3 tracking-wider">PAYMENT DETAILS</h3>
+                        <div class="glass-light rounded-xl p-4 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-amber-200/60">Order ID</span>
+                                <span class="font-mono text-orange-400 font-semibold">${typeof order.orderId === 'number' ? 'GV-'+order.orderId : order.orderId}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-amber-200/60">Payment Method</span>
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold ${getPaymentBadgeClass(order.paymentMethod)}">
+                                    ${getPaymentIcon(order.paymentMethod)} ${order.paymentMethod || 'N/A'}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-amber-200/60">Transaction ID</span>
+                                <span class="font-mono text-xs text-white">${order.transactionId || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-3 border-t border-white/10">
+                                <span class="text-amber-200/60 font-semibold">Total Amount</span>
+                                <span class="text-2xl font-bold text-green-400">₹${order.totalAmount || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-sm font-semibold text-amber-200/60 mb-3 tracking-wider">ORDER ITEMS</h3>
+                    <div class="glass-light rounded-xl p-4">
+                        ${order.items && order.items.length > 0 ? order.items.map(item => `
+                            <div class="flex justify-between items-center py-2 border-b border-white/10 last:border-0">
+                                <div class="flex items-center gap-3">
+                                    ${item.img ? `<img src="${item.img}" class="w-10 h-10 rounded-lg object-cover">` : ''}
+                                    <div>
+                                        <p class="text-white font-medium">${item.name || item}</p>
+                                        <p class="text-xs text-amber-200/50">${item.portion || ''} × ${item.qty || 1}</p>
+                                    </div>
+                                </div>
+                                <span class="text-orange-400 font-semibold">₹${(item.price || 0) * (item.qty || 1)}</span>
+                            </div>
+                        `).join('') : '<p class="text-amber-200/50 text-center">No items</p>'}
+                    </div>
+                </div>
+                
+                <div class="mt-6 grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-sm font-semibold text-amber-200/60 mb-3 tracking-wider">CUSTOMER RATING</h3>
+                        <div class="glass-light rounded-xl p-4 text-center">
+                            <div class="text-3xl mb-2">${renderStars(order.rating)}</div>
+                            <p class="text-sm text-amber-200/60">${order.rating ? order.rating + ' out of 5 stars' : 'No rating yet'}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-sm font-semibold text-amber-200/60 mb-3 tracking-wider">FEEDBACK</h3>
+                        <div class="glass-light rounded-xl p-4">
+                            <p class="text-amber-200/80 italic">${order.feedback ? '"' + order.feedback + '"' : 'No feedback provided'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center text-sm text-amber-200/50">
+                    Order placed on ${formatDate(order.orderDate)} at ${formatTime(order.orderDate)}
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeModal() {
+            document.getElementById('order-modal').classList.add('hidden');
+        }
+        
+        function deleteOrder(orderId) {
+            if (confirm('Are you sure you want to delete this order?')) {
+                // Ensure proper type matching for deletion (string vs number)
+                let idToDelete = orderId;
+                const order = currentOrders.find(o => o.orderId == orderId);
+                if (order) idToDelete = order.orderId;
+
+                SharedCart.deleteFromHistory(idToDelete);
+                loadOrders();
+            }
+        }
+        
+        // ==================== EXPORT FUNCTIONS ====================
+        function exportToExcel() {
+            const orders = currentOrders.length > 0 ? currentOrders : SharedCart.getOrderHistory();
+            if (!orders || orders.length === 0) { alert('No orders to export'); return; }
+            
+            const data = orders.map(order => ({
+                'Order ID': typeof order.orderId === 'number' ? 'GV-'+order.orderId : order.orderId,
+                'Customer Name': order.customerName || 'N/A',
+                'Email': order.customerEmail || 'N/A',
+                'Phone': order.customerPhone || 'N/A',
+                'Total Amount': '₹' + (order.totalAmount || 0),
+                'Payment': order.paymentMethod || 'N/A',
+                'Rating': order.rating ? order.rating + '/5' : 'N/A',
+                'Date': formatDate(order.orderDate)
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+            XLSX.writeFile(wb, `GourmetVerse_Orders_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+        
+        function exportToPDF() {
+            const orders = currentOrders.length > 0 ? currentOrders : SharedCart.getOrderHistory();
+            if (!orders || orders.length === 0) { alert('No orders to export'); return; }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+            
+            doc.setFontSize(20);
+            doc.setTextColor(255, 153, 0);
+            doc.text('GourmetVerse - Order Report', 14, 20);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+            
+            const tableData = orders.map(order => [
+                typeof order.orderId === 'number' ? 'GV-'+order.orderId : order.orderId,
+                order.customerName || 'Guest',
+                '₹' + (order.totalAmount || 0),
+                order.paymentMethod || 'N/A',
+                order.rating ? order.rating + '/5' : '-',
+                formatDate(order.orderDate)
+            ]);
+            
+            doc.autoTable({
+                head: [['Order ID', 'Customer', 'Amount', 'Payment', 'Rating', 'Date']],
+                body: tableData,
+                startY: 40,
+                styles: { fontSize: 8, cellPadding: 3 },
+                headStyles: { fillColor: [255, 153, 0], textColor: [0, 0, 0], fontStyle: 'bold' },
+            });
+            
+            doc.save(`GourmetVerse_Orders_${new Date().toISOString().split('T')[0]}.pdf`);
+        }
+        
+        // ==================== DEMO DATA ====================
+        function addDemoData() {
+            const demoOrders = [
+                {
+                    customerName: 'Rahul Sharma',
+                    customerEmail: 'rahul.sharma@email.com',
+                    customerPhone: '9876543210',
+                    customerAddress: '123, MG Road, Bangalore',
+                    items: [
+                        { name: 'Butter Chicken', price: 320, qty: 2 },
+                        { name: 'Garlic Naan', price: 70, qty: 4 },
+                        { name: 'Mango Lassi', price: 80, qty: 2 }
+                    ],
+                    totalAmount: 1020,
+                    paymentMethod: 'UPI',
+                    transactionId: 'UPI-' + Date.now(),
+                    rating: 5,
+                    feedback: 'Excellent food! The butter chicken was amazing!'
+                },
+                {
+                    customerName: 'Priya Patel',
+                    customerEmail: 'priya.p@gmail.com',
+                    customerPhone: '9988776655',
+                    customerAddress: '456, Anna Nagar, Chennai',
+                    items: [
+                        { name: 'Masala Dosa', price: 80, qty: 2 },
+                        { name: 'Idli Sambar', price: 60, qty: 1 },
+                        { name: 'Filter Coffee', price: 40, qty: 2 }
+                    ],
+                    totalAmount: 300,
+                    paymentMethod: 'Card',
+                    transactionId: 'CARD-' + Date.now(),
+                    rating: 4,
+                    feedback: 'Good breakfast options. Could be a bit crispier.'
+                },
+                {
+                    customerName: 'Amit Kumar',
+                    customerEmail: 'amit.k@outlook.com',
+                    customerPhone: '8877665544',
+                    customerAddress: '789, Connaught Place, Delhi',
+                    items: [
+                        { name: 'Hyderabadi Biryani', price: 350, qty: 1 },
+                        { name: 'Raita', price: 60, qty: 1 },
+                        { name: 'Gulab Jamun', price: 80, qty: 1 }
+                    ],
+                    totalAmount: 490,
+                    paymentMethod: 'Cash',
+                    transactionId: 'CASH-' + Date.now(),
+                    rating: 5,
+                    feedback: 'Best biryani in town! Will order again.'
+                },
+                {
+                    customerName: 'Sneha Reddy',
+                    customerEmail: 'sneha.r@yahoo.com',
+                    customerPhone: '7766554433',
+                    customerAddress: '321, Jubilee Hills, Hyderabad',
+                    items: [
+                        { name: 'Paneer Butter Masala', price: 280, qty: 1 },
+                        { name: 'Jeera Rice', price: 120, qty: 1 },
+                        { name: 'Butter Naan', price: 60, qty: 2 }
+                    ],
+                    totalAmount: 520,
+                    paymentMethod: 'Wallet',
+                    transactionId: 'WAL-' + Date.now(),
+                    rating: 4,
+                    feedback: 'Tasty paneer! Delivery was quick.'
+                },
+                {
+                    customerName: 'Mohammed Ali',
+                    customerEmail: 'mali@email.com',
+                    customerPhone: '6655443322',
+                    customerAddress: '567, Banjara Hills, Hyderabad',
+                    items: [
+                        { name: 'Chicken Tikka', price: 290, qty: 1 },
+                        { name: 'Mutton Curry', price: 420, qty: 1 },
+                        { name: 'Tandoori Roti', price: 40, qty: 4 }
+                    ],
+                    totalAmount: 870,
+                    paymentMethod: 'Net Banking',
+                    transactionId: 'NB-' + Date.now(),
+                    rating: 5,
+                    feedback: 'Authentic taste! Loved the mutton curry.'
+                }
+            ];
+            
+            demoOrders.forEach(order => {
+                // SharedCart automatically generates an ID if not provided,
+                // but if we want custom "GV-" style here, we can set it.
+                // However, SharedCart.nextOrderId generates a number.
+                // Let's let SharedCart handle IDs to be consistent with localStorage logic.
+                SharedCart.addToOrderHistory(order);
+            });
+            
+            loadOrders();
+            alert('5 demo orders added successfully!');
+        }
+        
+        function clearAllData() {
+            if (confirm('Are you sure you want to delete ALL order data? This cannot be undone!')) {
+                SharedCart.clearOrderHistory();
+                loadOrders();
+            }
+        }
+        
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+
+        // ---------------- 2D CHEF ANIMATION ----------------
+
+        // Eye Tracking
+        const chef = document.getElementById("chef");
+        const pupils = document.querySelectorAll(".pupil");
+        
+        document.addEventListener("mousemove", (e) => {
+            const section = document.getElementById("login-section");
+
+            if (section.classList.contains("section-hidden") || chef.classList.contains("covering-eyes") || chef.classList.contains("success-mode")) return;
+
+            document.querySelectorAll(".eye").forEach((eye) => {
+                const rect = eye.getBoundingClientRect();
+                const offsetX = Math.min(Math.max((e.clientX - window.innerWidth / 2) / 20, -5), 5);
+                const offsetY = Math.min(Math.max((e.clientY - window.innerHeight / 2) / 20, -5), 5);
+
+                const pupil = eye.querySelector(".pupil");
+                pupil.style.transform =
+                    `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+            });
+        });
+
+        // Hands cover on password focus
+        document.getElementById("password").addEventListener("focus", () => {
+            document.getElementById("chef").classList.add("covering-eyes");
+        });
+        document.getElementById("password").addEventListener("blur", () => {
+            document.getElementById("chef").classList.remove("covering-eyes");
+        });
+        
+        function startConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            canvas.style.display = "block";
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const particles = [];
+            const colors = ['#f97316', '#fbbf24', '#ffffff', '#fb923c'];
+
+            for(let i=0; i<150; i++) {
+                particles.push({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                    vx: (Math.random() - 0.5) * 20,
+                    vy: (Math.random() - 2) * 20,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 0.1 + 0.94
+                });
+            }
+
+            function animate() {
+                if(canvas.style.display === 'none') return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, index) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.6;
+                    p.vx *= p.speed;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                    if(p.y > window.innerHeight) particles.splice(index, 1);
+                });
+                if(particles.length > 0) requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+    </script>
+</body>
+</html>
